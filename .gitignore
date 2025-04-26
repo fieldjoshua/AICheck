@@ -14,9 +14,17 @@ Thumbs.db
 *.swo
 *~
 
-# Logs
+# Logs and temporary files
 *.log
-
-# Temporary files
 *.tmp
-*.temp 
+*.temp
+
+# AICheck specific
+.aicheck/error.log
+.aicheck/info.log
+.aicheck/cursor/
+.cursor/
+.aicheck/sessions/*
+!.aicheck/sessions/.gitkeep
+.aicheck/insights/*
+!.aicheck/insights/.gitkeep 
