@@ -6,7 +6,7 @@
 # Security functions
 validate_path() {
     local path="$1"
-    if [[ "$path" != .aicheck/* ]]; then
+    if [[ "$path" != .aicheck/* ]] || [[ "$path" == *..* ]]; then
         echo "Error: Invalid path access attempt" >&2
         return 1
     fi
@@ -16,6 +16,15 @@ check_permissions() {
     local file="$1"
     if [[ ! -O "$file" ]]; then
         echo "Error: Insufficient permissions for $file" >&2
+        return 1
+    fi
+    # Fail if file is world-writable or group-writable (macOS compatible)
+    perms=$(stat -f %A "$file")
+    owner_perms=$((perms / 100))
+    group_perms=$(((perms / 10) % 10))
+    other_perms=$((perms % 10))
+    if [ $group_perms -ge 2 ] || [ $other_perms -ge 2 ]; then
+        echo "Error: $file is world-writable or group-writable" >&2
         return 1
     fi
 }

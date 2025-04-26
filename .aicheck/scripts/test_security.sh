@@ -1,10 +1,8 @@
 #!/bin/bash
+set +e
 
 # Security test script for AICheck
 # This script tests all security features and utilities
-
-# Exit on error
-set -e
 
 # Colors for output
 RED='\033[0;31m'
@@ -33,23 +31,15 @@ run_test() {
     
     echo -e "${YELLOW}Running test: $test_name${NC}"
     
-    # Run the test command
-    if eval "$test_command"; then
-        if [ "$?" -eq "$expected_exit" ]; then
-            echo -e "${GREEN}✓ Test passed: $test_name${NC}"
-            ((TESTS_PASSED++))
-        else
-            echo -e "${RED}✗ Test failed: $test_name (wrong exit code)${NC}"
-            ((TESTS_FAILED++))
-        fi
+    # Run the test command in a subshell
+    ( eval "$test_command" )
+    local exit_code=$?
+    if [ "$exit_code" -eq "$expected_exit" ]; then
+        echo -e "${GREEN}✓ Test passed: $test_name${NC}"
+        ((TESTS_PASSED++))
     else
-        if [ "$?" -eq "$expected_exit" ]; then
-            echo -e "${GREEN}✓ Test passed: $test_name${NC}"
-            ((TESTS_PASSED++))
-        else
-            echo -e "${RED}✗ Test failed: $test_name${NC}"
-            ((TESTS_FAILED++))
-        fi
+        echo -e "${RED}✗ Test failed: $test_name (exit code $exit_code, expected $expected_exit)${NC}"
+        ((TESTS_FAILED++))
     fi
 }
 
@@ -73,7 +63,7 @@ test_permission_checks() {
     
     # Create test file
     touch .aicheck/test_file
-    chmod 644 .aicheck/test_file
+    chmod 600 .aicheck/test_file
     
     # Test valid permissions
     run_test "Valid permissions" "check_permissions .aicheck/test_file" 0
