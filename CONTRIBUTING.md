@@ -1,80 +1,49 @@
 # Contributing to AICheck
 
-Thank you for your interest in contributing to AICheck! This document provides guidelines and instructions for contributing.
-
-## Code of Conduct
-
-By participating in this project, you agree to maintain a respectful and inclusive environment for everyone.
+Thank you for your interest in contributing to AICheck! Your help is appreciated.
 
 ## How to Contribute
 
-### 1. Fork and Clone
+1. **Fork the repository**
+2. **Create a new branch** for your feature or bugfix:
 
-```bash
-git clone https://github.com/your-username/AICheck.git
-cd AICheck
-```
-
-### 2. Set Up Development Environment
-
-```bash
-# Create virtual environment
-python -m venv .venv
-source .venv/bin/activate  # Unix/macOS
-# OR
-.venv\Scripts\activate     # Windows
-
-# Install development dependencies
-pip install -r requirements.txt
-```
-
-### 3. Development Workflow
-
-1. Create a new branch:
-
-   ```bash
+   ```sh
    git checkout -b feature/your-feature-name
    ```
 
-2. Make your changes
+3. **Make your changes** and add tests as appropriate.
+4. **Run the test suite** to ensure all tests pass:
 
-3. Run tests:
-
-   ```bash
-   pytest
+   ```sh
+   .aicheck/scripts/test_all.sh
    ```
 
-4. Format code:
+5. **Commit your changes** with a clear message:
 
-   ```bash
-   black .
+   ```sh
+   git commit -am 'Add feature/fix: description'
    ```
 
-5. Check types:
+6. **Push to your fork** and open a Pull Request (PR) against the `main` branch.
 
-   ```bash
-   mypy .
-   ```
+## Code Style
 
-6. Lint code:
+- Use clear, descriptive commit messages.
+- Keep shell scripts POSIX-compliant where possible.
+- Use functions for modularity and reuse.
+- Run [ShellCheck](https://www.shellcheck.net/) on all shell scripts before submitting.
 
-   ```bash
-   flake8
-   ```
+## Reporting Issues
 
-### 4. Commit Guidelines
+- Please use the GitHub Issues tab to report bugs or request features.
+- Include as much detail as possible (steps to reproduce, environment, etc).
 
-- Use clear, descriptive commit messages
-- Reference issues and pull requests in commit messages
-- Keep commits focused and atomic
+## Code of Conduct
 
-### 5. Pull Request Process
+- Be respectful and constructive in all interactions.
+- See [Contributor Covenant](https://www.contributor-covenant.org/) for a standard code of conduct.
 
-1. Update documentation for any new features
-2. Add tests for new functionality
-3. Ensure all tests pass
-4. Update the changelog
-5. Submit a pull request
+Thank you for helping make AICheck better!
 
 ## Development Standards
 

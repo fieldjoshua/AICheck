@@ -1,0 +1,13 @@
+name: AICheck Test Suite
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Make scripts executable
+        run: chmod +x .aicheck/scripts/*.sh .aicheck/hooks/*
+      - name: Run all tests
+        run: .aicheck/scripts/test_all.sh 

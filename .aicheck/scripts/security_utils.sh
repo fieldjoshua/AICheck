@@ -3,15 +3,12 @@
 # Security utilities for AICheck
 # This script provides security-related functions for AICheck
 
-# Exit on error
-set -e
-
 # Security functions
 validate_path() {
     local path="$1"
     if [[ "$path" != .aicheck/* ]]; then
         echo "Error: Invalid path access attempt" >&2
-        exit 1
+        return 1
     fi
 }
 
@@ -19,7 +16,7 @@ check_permissions() {
     local file="$1"
     if [[ ! -O "$file" ]]; then
         echo "Error: Insufficient permissions for $file" >&2
-        exit 1
+        return 1
     fi
 }
 

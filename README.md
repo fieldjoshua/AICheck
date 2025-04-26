@@ -1,109 +1,67 @@
 # AICheck
 
-A powerful AI-powered development workflow management system that helps teams track, manage, and execute development tasks with AI assistance.
+AICheck is a modular, security-focused shell-based framework for managing, testing, and automating code quality and project workflows. It provides robust utilities for path validation, permission checks, secure logging, configuration encryption, and more.
 
 ## Features
 
-- **AI Session Management**: Create and manage AI-assisted development sessions
-- **Action Tracking**: Track development actions with detailed status and progress
-- **Context Awareness**: Maintain context across development sessions
-- **Documentation Management**: Organize and track project documentation
-- **Git Integration**: Seamless integration with Git repositories
-- **Customizable Workflow**: Adaptable to different development methodologies
+- Secure path and permission validation
+- Action and session management
+- Security event logging
+- Config encryption/decryption
+- Input sanitization
+- Comprehensive test suite
+- Git pre-commit hook integration
 
 ## Installation
 
-1. Clone this repository:
+1. Clone the repository:
 
-```bash
-git clone https://github.com/fieldjoshua/AICheck.git
+   ```sh
+
+git clone <https://github.com/fieldjoshua/AICheck.git>
 cd AICheck
+
+```
+2. Make all scripts executable:
+   ```sh
+chmod +x .aicheck/scripts/*.sh .aicheck/hooks/*
 ```
 
-2. Make the script executable:
+3. (Optional) Install pre-commit hook:
 
-```bash
-chmod +x aicheck.sh
-```
+   ```sh
 
-3. Run the installer:
+ln -sf ../../.aicheck/hooks/pre-commit .git/hooks/pre-commit
 
-```bash
-./aicheck.sh
 ```
 
 ## Usage
+- Run the full test suite:
+  ```sh
+  .aicheck/scripts/test_all.sh
+  ```
 
-### Basic Commands
+- Manage actions:
 
-- Start a new AI session:
+  ```sh
+  .aicheck/scripts/action.sh create <ActionName>
+  .aicheck/scripts/action.sh status <ActionName>
+  .aicheck/scripts/action.sh switch <ActionName>
+  .aicheck/scripts/action.sh delete <ActionName>
+  ```
 
-```bash
-./ai start
+- Style and security checks are run automatically on commit if the pre-commit hook is installed.
+
+## Testing
+
+Run all tests:
+
+```sh
+.aicheck/scripts/test_all.sh
 ```
-
-- Generate a prompt template:
-
-```bash
-./ai prompt
-```
-
-- Check current status:
-
-```bash
-./ai status
-```
-
-- Update action status:
-
-```bash
-./ai update-status <action_name> <new_status>
-```
-
-### ActiveAction Management
-
-For complete details on ActiveAction management, please refer to `RULES.md`. This is the authoritative source for all rules and guidelines, including:
-
-- ActiveAction designation and tracking
-- Action creation and management
-- Status updates and progress tracking
-- Documentation requirements
-- Implementation guidelines
-
-### Directory Structure
-
-```
-.aicheck/
-├── actions/           # Action-specific directories
-├── cursor/           # Cursor-specific configurations
-├── docs/             # Documentation files
-├── hooks/            # Git hooks
-├── insights/         # AI-generated insights
-├── sessions/         # AI session data
-└── templates/        # Template files
-```
-
-## Configuration
-
-The system uses several configuration files:
-
-- `RULES.md`: Project rules and guidelines (controlling document)
-- `.aicheck/docs/actions_index.md`: Action tracking and status
-- `.aicheck/current_action`: ActiveAction tracking
-- `.aicheck/current_session`: Current active session
 
 ## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Contributions are welcome! Please see `CONTRIBUTING.md` for guidelines.
 
 ## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-For support, please open an issue in the GitHub repository.
+This project is licensed under the MIT License. See `LICENSE` for details.
