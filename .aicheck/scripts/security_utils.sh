@@ -57,8 +57,8 @@ verify_checksum() {
         return 1
     fi
     
-    # Calculate checksum
-    local actual_checksum=$(sha256sum "$file" | cut -d' ' -f1)
+    # Calculate checksum (macOS compatible)
+    local actual_checksum=$(shasum -a 256 "$file" | cut -d' ' -f1)
     
     # Compare checksums
     if [ "$actual_checksum" != "$expected_checksum" ]; then
@@ -83,8 +83,8 @@ generate_checksum() {
         return 1
     fi
     
-    # Generate and return checksum
-    sha256sum "$file" | cut -d' ' -f1
+    # Generate and return checksum (macOS compatible)
+    shasum -a 256 "$file" | cut -d' ' -f1
 }
 
 # Secure configuration handling
