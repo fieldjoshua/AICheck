@@ -1,0 +1,282 @@
+# AICheck Testing Procedure
+
+This document outlines the testing procedure for AICheck. Each test should be performed in sequence to ensure system integrity.
+
+## 1. Basic System Tests
+
+### 1.1 Installation
+
+```bash
+# Test fresh installation
+./aicheck.sh
+
+# Verify directory structure
+ls -la .aicheck/
+
+# Check file permissions
+ls -l .aicheck/scripts/
+ls -l .aicheck/hooks/
+```
+
+### 1.2 Git Integration
+
+```bash
+# Test pre-commit hook
+git add .
+git commit -m "test: testing pre-commit hook"
+
+# Verify hook enforcement
+# Try to modify critical files
+# Try to make changes outside ActiveAction scope
+```
+
+## 2. Action Management Tests
+
+### 2.1 Action Creation
+
+```bash
+# Test new action creation
+./ai new TestAction1
+
+# Verify:
+# - Action directory created
+# - Plan file created
+# - Added to actions index
+# - Set as ActiveAction
+```
+
+### 2.2 Action Switching
+
+```bash
+# Create another action
+./ai new TestAction2
+
+# Switch between actions
+./ai switch TestAction1
+./ai switch TestAction2
+
+# Verify:
+# - ActiveAction updates correctly
+# - Status shows correct action
+```
+
+### 2.3 Status Updates
+
+```bash
+# Test status updates
+./ai update-status TestAction1 Not Started
+./ai update-status TestAction1 ActiveAction
+./ai update-status TestAction1 Blocked
+./ai update-status TestAction1 On Hold
+./ai update-status TestAction1 Completed
+
+# Verify:
+# - Status changes in index
+# - Progress updates correctly
+# - Human manager approval when required
+```
+
+### 2.4 Progress Updates
+
+```bash
+# Test progress updates
+./ai update-progress TestAction1 25%
+./ai update-progress TestAction1 50%
+./ai update-progress TestAction1 75%
+./ai update-progress TestAction1 100%
+
+# Verify:
+# - Progress updates in index
+# - Progress validation (0-100%)
+```
+
+## 3. Administrative Tests
+
+### 3.1 Audit Creation
+
+```bash
+# Test audit creation
+./ai audit
+
+# Verify:
+# - Audit action created
+# - Set as ActiveAction
+# - Plan file created
+# - Human manager approval required
+```
+
+### 3.2 Session Management
+
+```bash
+# Test session creation
+./ai start
+
+# Verify:
+# - Session created
+# - Context file created
+# - Session ID generated
+```
+
+### 3.3 Prompt Generation
+
+```bash
+# Test prompt generation
+./ai prompt
+
+# Verify:
+# - Prompt template created
+# - Context included
+# - ActiveAction referenced
+```
+
+## 4. Compliance Tests
+
+### 4.1 RULES.md Enforcement
+
+```bash
+# Test rule enforcement
+# Try to:
+# - Modify RULES.md without approval
+# - Create action without approval
+# - Switch action without approval
+# - Update status without approval
+```
+
+### 4.2 Scope Enforcement
+
+```bash
+# Test scope enforcement
+# Try to:
+# - Modify files outside ActiveAction scope
+# - Create files outside ActiveAction scope
+# - Commit changes outside ActiveAction scope
+```
+
+## 5. Error Handling Tests
+
+### 5.1 Invalid Inputs
+
+```bash
+# Test invalid inputs
+./ai new "Invalid Action Name"
+./ai update-status "NonExistentAction" "Invalid Status"
+./ai update-progress "NonExistentAction" 150%
+
+# Verify:
+# - Proper error messages
+# - System state maintained
+# - No partial changes
+```
+
+### 5.2 File System Errors
+
+```bash
+# Test file system errors
+# Try to:
+# - Create action in read-only directory
+# - Modify files without permissions
+# - Delete critical files
+```
+
+## 6. Integration Tests
+
+### 6.1 Git Integration
+
+```bash
+# Test git integration
+git init
+git add .
+git commit -m "Initial commit"
+
+# Verify:
+# - Pre-commit hook works
+# - Status tracking works
+# - Action history maintained
+```
+
+### 6.2 Editor Integration
+
+```bash
+# Test editor integration
+# Verify:
+# - Files open in editor when available
+# - Templates are properly formatted
+# - Documentation is readable
+```
+
+## 7. Performance Tests
+
+### 7.1 Large Scale
+
+```bash
+# Test with many actions
+# Create 10+ actions
+# Switch between them
+# Update statuses
+# Update progress
+
+# Verify:
+# - System remains responsive
+# - Index updates quickly
+# - Status checks are fast
+```
+
+### 7.2 Concurrent Operations
+
+```bash
+# Test concurrent operations
+# Try to:
+# - Create multiple actions simultaneously
+# - Update statuses simultaneously
+# - Switch actions rapidly
+```
+
+## 8. Recovery Tests
+
+### 8.1 Backup/Restore
+
+```bash
+# Test backup/restore
+# Create backup
+# Make changes
+# Restore from backup
+
+# Verify:
+# - All files restored
+# - State maintained
+# - No data loss
+```
+
+### 8.2 Error Recovery
+
+```bash
+# Test error recovery
+# Simulate failures
+# Check system state
+# Verify recovery
+```
+
+## Test Results
+
+For each test:
+
+1. Document the expected behavior
+2. Record the actual behavior
+3. Note any discrepancies
+4. Document any issues found
+5. Track resolution status
+
+## Test Environment
+
+- OS: [Your OS]
+- Shell: [Your Shell]
+- Git Version: [Git Version]
+- AICheck Version: [Version]
+
+## Notes
+
+- Run tests in sequence
+- Document all results
+- Report issues immediately
+- Verify fixes
+- Update tests as needed

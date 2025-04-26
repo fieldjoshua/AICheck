@@ -179,35 +179,31 @@ case "$command" in
         ;;
         
     audit)
+        # Create administrative audit for system management
+        echo "=== Creating Administrative Audit ==="
+        echo "This will create an administrative audit action to:"
+        echo "1. Review system state"
+        echo "2. Create new actions"
+        echo "3. Update existing actions"
+        echo "4. Ensure compliance with RULES.md"
+        echo ""
+        echo "The audit will become the ActiveAction"
+        echo ""
         create_administrative_audit
         ;;
         
     admin)
-        # Enter admin mode
-        echo "=== Entering Admin Mode ==="
-        echo "⚠️ CRITICAL: Admin mode provides full system access ⚠️"
-        echo "This mode allows you to:"
-        echo "1. Modify system files"
-        echo "2. Update core functionality"
-        echo "3. Manage all actions and sessions"
-        echo "4. Access administrative features"
+        # Create administrative audit for system management
+        echo "=== Creating Administrative Audit ==="
+        echo "This will create an administrative audit action to:"
+        echo "1. Review system state"
+        echo "2. Create new actions"
+        echo "3. Update existing actions"
+        echo "4. Ensure compliance with RULES.md"
         echo ""
-        echo "Current state:"
-        echo "- ActiveAction: $(cat .aicheck/current_action 2>/dev/null || echo "None")"
-        echo "- Current session: $(cat .aicheck/current_session 2>/dev/null || echo "None")"
-        echo "- Actions index: .aicheck/docs/actions_index.md"
+        echo "The audit will become the ActiveAction"
         echo ""
-        echo "Available admin commands:"
-        echo "  ./ai admin audit    - Create administrative audit"
-        echo "  ./ai admin backup   - Create system backup"
-        echo "  ./ai admin restore  - Restore from backup"
-        echo "  ./ai admin verify   - Verify system integrity"
-        echo "  ./ai admin update   - Update system files"
-        echo ""
-        echo "Type 'exit' to leave admin mode"
-        
-        # Start admin shell
-        PS1="(AICheck Admin) $ " bash
+        create_administrative_audit
         ;;
         
     cursor)
@@ -322,7 +318,7 @@ You can proceed with implementation if your work complies with RULES.md and fall
         echo "  update-progress - Update action progress"
         echo "  new            - Create a new action"
         echo "  switch         - Switch to an existing action"
-        echo "  audit           - Create an administrative audit action"
+        echo "  audit          - Create administrative audit"
         echo "  admin           - Enter admin mode"
         echo "  cursor          - Prepare for Cursor chat"
         echo "  check!          - Generate AI editor check prompt"
