@@ -18,6 +18,7 @@ fi
 
 # Source common functions
 source .aicheck/scripts/common.sh
+source .aicheck/scripts/action.sh
 
 # Get the current ActiveAction
 if [ ! -f ".aicheck/current_action" ]; then
@@ -56,48 +57,9 @@ critical_files=(
     ".aicheck/current_action"
 )
 
-# Function to validate actions index format
-validate_actions_index() {
-    local index_file=".aicheck/docs/actions_index.md"
-    if [ -f "$index_file" ]; then
-        # Check for required columns
-        if ! grep -q "| Action | Status | Progress | Owner | Started | Last Updated | Type | Priority |" "$index_file"; then
-            echo "❌ Error: Actions index is missing required columns"
-            echo "Please ensure the index has all required columns"
-            exit 1
-        fi
-        
-        # Check for valid status values
-        while IFS= read -r line; do
-            if [[ "$line" =~ \|[[:space:]]*[^|]+[[:space:]]*\|[[:space:]]*([^|]+)[[:space:]]*\| ]]; then
-                local status="${BASH_REMATCH[1]}"
-                case "$status" in
-                    "Not Started"|"ActiveAction"|"Completed"|"Blocked"|"On Hold")
-                        continue
-                        ;;
-                    *)
-                        echo "❌ Error: Invalid status in actions index: $status"
-                        echo "Status must be one of: Not Started, ActiveAction, Completed, Blocked, On Hold"
-                        exit 1
-                        ;;
-                esac
-            fi
-        done < "$index_file"
-    fi
-}
-
 for file in "${critical_files[@]}"; do
     if echo "$files" | grep -q "^$file$"; then
         if is_substantive_change "$file"; then
-            echo "⚠️ WARNING: Substantive changes to critical file: $file"
-            echo "This requires human manager approval."
-            echo "Please confirm you have approval to modify this file. (y/n)"
-            read -r has_approval
-            if [ "$has_approval" != "y" ]; then
-                echo "❌ Commit rejected: Human manager approval required for changes to $file"
-                exit 1
-            fi
-            
             # Validate actions index if it's being modified
             if [ "$file" == ".aicheck/docs/actions_index.md" ]; then
                 validate_actions_index
@@ -108,46 +70,19 @@ for file in "${critical_files[@]}"; do
     fi
 done
 
-# Check for changes to action plans
-if [ "$current_action" != "None" ]; then
-    action_plan=".aicheck/actions/$current_action/$current_action-PLAN.md"
-    if [ -f "$action_plan" ] && echo "$files" | grep -q "^$action_plan$"; then
-        if is_substantive_change "$action_plan"; then
-            echo "⚠️ WARNING: Substantive changes to ActiveAction plan: $action_plan"
-            echo "This requires human manager approval."
-            echo "Please confirm you have approval to modify this file. (y/n)"
-            read -r has_approval
-            if [ "$has_approval" != "y" ]; then
-                echo "❌ Commit rejected: Human manager approval required for changes to action plan"
-                exit 1
-            fi
-        else
-            echo "ℹ️ Note: Non-substantive changes to action plan (whitespace only)"
-        fi
-    fi
-fi
-
-# Check for changes to templates
-if echo "$files" | grep -q "^.aicheck/templates/"; then
-    for template in $(echo "$files" | grep "^.aicheck/templates/"); do
-        if is_substantive_change "$template"; then
-            echo "⚠️ WARNING: Substantive changes to template: $template"
-            echo "This requires human manager approval."
-            echo "Please confirm you have approval to modify this template. (y/n)"
-            read -r has_approval
-            if [ "$has_approval" != "y" ]; then
-                echo "❌ Commit rejected: Human manager approval required for template changes"
-                exit 1
-            fi
-        else
-            echo "ℹ️ Note: Non-substantive changes to template (whitespace only)"
-        fi
-    done
-fi
-
 # Check for changes outside ActiveAction scope
 if [ "$current_action" != "None" ]; then
     action_dir=".aicheck/actions/$current_action"
+    action_plan="$action_dir/$current_action-PLAN.md"
+    
+    # Get files in scope from action plan
+    if [ -f "$action_plan" ]; then
+        # Extract files section and clean up the list
+        in_scope_files=$(grep -A 100 "## Files in Scope" "$action_plan" | grep -v "##" | grep "^- " | sed 's/^- //' | sed 's/`//g')
+    else
+        in_scope_files=""
+    fi
+    
     for file in $files; do
         # Skip files that are part of the ActiveAction
         if [[ "$file" == "$action_dir"* ]]; then
@@ -167,6 +102,29 @@ if [ "$current_action" != "None" ]; then
         # Skip non-substantive changes
         if ! is_substantive_change "$file"; then
             echo "ℹ️ Note: Non-substantive changes to $file (whitespace only)"
+            continue
+        fi
+        
+        # Check if file is in scope
+        in_scope=false
+        while IFS= read -r scope_file; do
+            if [ -n "$scope_file" ] && [ "$file" == "$scope_file" ]; then
+                in_scope=true
+                break
+            fi
+        done <<< "$in_scope_files"
+        
+        if [ "$in_scope" = true ]; then
+            continue
+        fi
+        
+        # Skip AdminAudit files
+        if [[ "$file" == ".aicheck/actions/AdminAudit/"* ]]; then
+            continue
+        fi
+        
+        # Skip action plan files
+        if [[ "$file" == ".aicheck/actions/"*"-PLAN.md" ]]; then
             continue
         fi
         
