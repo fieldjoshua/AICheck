@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# AICheck pre-commit hook
+# This hook runs before each commit to ensure code quality
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
+echo "Running AICheck pre-commit checks..."
+
+# Run style check
+if [ -f ".aicheck/scripts/aicheck_style.sh" ]; then
+    echo "Checking AICheck style..."
+    source .aicheck/scripts/aicheck_style.sh
+else
+    echo -e "${RED}Error: Style check script not found${NC}"
+    exit 1
+fi
+
+# Run test script
+if [ -f ".aicheck/scripts/test_pre_commit.sh" ]; then
+    echo "Running pre-commit tests..."
+    .aicheck/scripts/test_pre_commit.sh
+else
+    echo -e "${RED}Error: Test script not found${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}All pre-commit checks passed${NC}"
+exit 0 
