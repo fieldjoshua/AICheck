@@ -12,6 +12,11 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+# Create necessary directories
+mkdir -p .aicheck/sessions
+mkdir -p .aicheck/hooks
+mkdir -p .aicheck/scripts
+
 # Source security utilities
 source .aicheck/scripts/security_utils.sh
 
