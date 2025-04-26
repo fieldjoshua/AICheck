@@ -1,6 +1,27 @@
 #!/bin/bash
 
-# Common functions for UltraAICheck
+# Common functions for AICheck
+
+# Color constants
+export AICHECK_PURPLE='\033[38;5;99m'  # Bright purple
+export AICHECK_ORANGE='\033[38;5;208m'  # Neon orange
+export AICHECK_BOLD='\033[1m'
+export AICHECK_RESET='\033[0m'
+
+# Function to format AICheck paths
+format_aicheck_path() {
+    local path=$1
+    echo -e "${AICHECK_PURPLE}${AICHECK_BOLD}$path${AICHECK_RESET}"
+}
+
+# Function to display AICheck logo
+show_aicheck_logo() {
+    if [ -f ".aicheck/logo.txt" ]; then
+        echo -e "${AICHECK_PURPLE}"
+        cat .aicheck/logo.txt
+        echo -e "${AICHECK_RESET}"
+    fi
+}
 
 # Function to create directory if it doesn't exist
 create_dir() {
@@ -16,9 +37,9 @@ create_dir() {
             echo "Error: Failed to create directory: $1"
             exit 1
         fi
-        echo "  Created directory: $1"
+        echo "  Created directory: $(format_aicheck_path "$1")"
     else
-        echo "  Directory already exists: $1"
+        echo "  Directory already exists: $(format_aicheck_path "$1")"
     fi
 }
 

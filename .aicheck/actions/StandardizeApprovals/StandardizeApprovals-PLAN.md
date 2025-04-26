@@ -42,6 +42,7 @@ This action is focused on standardizing the approval process across the system. 
 ## Files in Scope
 
 - `.aicheck/scripts/action.sh`
+- `.aicheck/scripts/common.sh`
 - `.aicheck/hooks/pre-commit`
 - `.aicheck/actions/AdminAudit/AdminAudit-PLAN.md`
 - `.aicheck/docs/actions_index.md`
@@ -49,3 +50,8 @@ This action is focused on standardizing the approval process across the system. 
 - `.aicheck/actions/TestApproval/TestApproval-PLAN.md`
 - `.aicheck/actions/TestNewAction/TestNewAction-PLAN.md`
 - `.aicheck/actions/StandardizeApprovals/StandardizeApprovals-PLAN.md`
+- `RULES.md`
+- `TESTING.md`
+- `ai`
+- `aicheck.sh`
+- `test_sounds.sh`

@@ -4,6 +4,12 @@
 # A standalone version of AICheck with optimized directory structure
 # Each action has its own directory with plan file and supporting docs
 
+# Source common functions
+source .aicheck/scripts/common.sh
+
+# Display logo
+show_aicheck_logo
+
 echo "┌─────────────────────────────────────────────────────────┐"
 echo "│                                                         │"
 echo "│             AICheck Installer                           │"
@@ -18,9 +24,6 @@ if ! ./test-requirements.sh; then
     exit 1
 fi
 
-# Source common functions
-source .aicheck/scripts/common.sh
-
 # Check git installation and repository
 check_git
 check_git_repo
@@ -29,7 +32,7 @@ check_git_repo
 if [ -d ".aicheck" ]; then
     echo ""
     echo "=== Existing AICheck Installation Found ==="
-    echo "Found existing .aicheck directory. This installation will:"
+    echo "Found existing $(format_aicheck_path ".aicheck") directory. This installation will:"
     echo "1. Preserve all existing actions"
     echo "2. Keep all existing sessions"
     echo "3. Maintain ActiveAction and session states"
@@ -41,7 +44,7 @@ if [ -d ".aicheck" ]; then
     backup_dir=".aicheck_backup_$(date +%Y%m%d%H%M%S)"
     mkdir -p "$backup_dir"
     cp -r .aicheck/* "$backup_dir/"
-    echo "Created backup in $backup_dir"
+    echo "Created backup in $(format_aicheck_path "$backup_dir")"
     
     # Preserve existing actions
     echo ""
@@ -50,7 +53,7 @@ if [ -d ".aicheck" ]; then
         echo "Found existing actions:"
         find .aicheck/actions -maxdepth 1 -mindepth 1 -type d | while read action_dir; do
             action_name=$(basename "$action_dir")
-            echo "  - $action_name"
+            echo "  - $(format_aicheck_path "$action_name")"
         done
     fi
     
@@ -61,7 +64,7 @@ if [ -d ".aicheck" ]; then
         echo "Found existing sessions:"
         find .aicheck/sessions -maxdepth 1 -mindepth 1 -type d | while read session_dir; do
             session_id=$(basename "$session_dir")
-            echo "  - $session_id"
+            echo "  - $(format_aicheck_path "$session_id")"
         done
     fi
     
@@ -70,11 +73,11 @@ if [ -d ".aicheck" ]; then
     echo "=== Preserving Current State ==="
     if [ -f ".aicheck/current_action" ]; then
         current_action=$(cat .aicheck/current_action)
-        echo "ActiveAction: $current_action"
+        echo "ActiveAction: $(format_aicheck_path "$current_action")"
     fi
     if [ -f ".aicheck/current_session" ]; then
         current_session=$(cat .aicheck/current_session)
-        echo "Current session: $current_session"
+        echo "Current session: $(format_aicheck_path "$current_session")"
     fi
     
     # Ask for confirmation
@@ -124,7 +127,7 @@ fi
 # Create the main AI command script
 echo ""
 echo "=== Creating AI Command Script ==="
-cat > ./ai << 'EOF'
+cat > ./ai << EOF
 #!/bin/bash
 
 # AICheck command interface
@@ -136,10 +139,10 @@ source .aicheck/scripts/common.sh
 source .aicheck/scripts/session.sh
 source .aicheck/scripts/action.sh
 
-command=$1
+command=\$1
 shift
 
-case "$command" in
+case "\$command" in
     start)
         start_session
         ;;
@@ -153,57 +156,57 @@ case "$command" in
         ;;
     
     update-status)
-        update_action_status "$1" "$2"
+        update_action_status "\$1" "\$2"
         ;;
         
     update-progress)
-        update_action_progress "$1" "$2"
+        update_action_progress "\$1" "\$2"
         ;;
         
     new)
-        if [ -z "$1" ]; then
+        if [ -z "\$1" ]; then
             echo "Error: Action name required"
             echo "Usage: ./ai new <action_name>"
             exit 1
         fi
-        create_new_action "$1"
+        create_new_action "\$1"
         ;;
         
     switch)
-        if [ -z "$1" ]; then
+        if [ -z "\$1" ]; then
             echo "Error: Action name required"
             echo "Usage: ./ai switch <action_name>"
             exit 1
         fi
-        switch_to_action "$1"
+        switch_to_action "\$1"
         ;;
         
     audit)
-        # Create administrative audit for system management
-        echo "=== Creating Administrative Audit ==="
-        echo "This will create an administrative audit action to:"
-        echo "1. Review system state"
-        echo "2. Create new actions"
-        echo "3. Update existing actions"
-        echo "4. Ensure compliance with RULES.md"
-        echo ""
-        echo "The audit will become the ActiveAction"
-        echo ""
-        create_administrative_audit
+        # Check for human manager approval
+        check_human_manager_approval "Change ActiveAction" "AdminAudit"
+        
+        # Check if AdminAudit exists
+        if [ ! -d ".aicheck/actions/AdminAudit" ]; then
+            echo "Creating new AdminAudit action..."
+            create_new_action "AdminAudit"
+        else
+            echo "Switching to existing AdminAudit..."
+            switch_to_action "AdminAudit"
+        fi
         ;;
         
     admin)
-        # Create administrative audit for system management
-        echo "=== Creating Administrative Audit ==="
-        echo "This will create an administrative audit action to:"
-        echo "1. Review system state"
-        echo "2. Create new actions"
-        echo "3. Update existing actions"
-        echo "4. Ensure compliance with RULES.md"
-        echo ""
-        echo "The audit will become the ActiveAction"
-        echo ""
-        create_administrative_audit
+        # Check for human manager approval
+        check_human_manager_approval "Change ActiveAction" "AdminAudit"
+        
+        # Check if AdminAudit exists
+        if [ ! -d ".aicheck/actions/AdminAudit" ]; then
+            echo "Creating new AdminAudit action..."
+            create_new_action "AdminAudit"
+        else
+            echo "Switching to existing AdminAudit..."
+            switch_to_action "AdminAudit"
+        fi
         ;;
         
     cursor)
@@ -276,35 +279,59 @@ EOC
         current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
         current_session=$(cat .aicheck/current_session 2>/dev/null || echo "None")
         
-        # Create check prompt
-        check_prompt="⚠️ AI Editor Check ⚠️
+        # Generate check prompt
+        check_prompt=$(cat << EOF
+⚠️ AI Editor Check - AICheck Project ⚠️
 
-What action are you working on? Please reference:
-- Action Plan: .aicheck/actions/$current_action/$current_action-PLAN.md
-- Actions Index: .aicheck/docs/actions_index.md
-- RULES.md: Project rules and guidelines
+Please specify which action you are working on and confirm compliance with project guidelines.
 
-Current Action: $current_action
-Current Session: $current_session
+Current State:
+- ActiveAction: $current_action
+- Current Session: $current_session
 
-Please confirm you have reviewed:
-1. The action plan
-2. RULES.md compliance
-3. 3. ActiveAction scope
-4. Supporting documentation
+Important Documents:
+1. Action Plan: .aicheck/actions/$current_action/$current_action-PLAN.md
+2. Actions Index: .aicheck/docs/actions_index.md
+3. RULES.md: Project rules and guidelines (CONTROLLING DOCUMENT)
+4. Supporting Docs: .aicheck/actions/$current_action/supporting_docs/
 
-You can proceed with implementation if your work complies with RULES.md and falls within the ActiveAction scope."
+Required Confirmations:
+□ I have reviewed RULES.md and confirm compliance
+□ I have reviewed the current action plan
+□ I understand the action scope and boundaries
+□ I have checked supporting documentation
+□ I am aware of the current action status and progress
+
+Action Scope:
+- The scope is defined in the action plan
+- All work must comply with RULES.md
+- Changes must be within the current action scope
+- Documentation must be kept up to date
+
+Reminders:
+- You can proceed with implementation if work complies with RULES.md
+- Stay within the defined action scope
+- Update progress using './ai update-progress'
+- Update status using './ai update-status'
+- Document all significant changes
+
+Please proceed with your task while maintaining compliance with these guidelines.
+EOF
+)
+        # Display the prompt
+        echo "$check_prompt"
+        echo ""
         
-        # Copy to clipboard
+        # Copy to clipboard based on OS
         if command -v pbcopy &> /dev/null; then
             echo "$check_prompt" | pbcopy
-            echo "Check prompt copied to clipboard"
+            echo "✓ Check prompt copied to clipboard (macOS)"
         elif command -v xclip &> /dev/null; then
             echo "$check_prompt" | xclip -selection clipboard
-            echo "Check prompt copied to clipboard"
+            echo "✓ Check prompt copied to clipboard (Linux)"
         else
-            echo "$check_prompt"
-            echo "Please copy the above prompt manually"
+            echo "⚠️ Clipboard tools not found. Please copy the above prompt manually."
+            echo "Tip: Select the text above and use Ctrl+C/Cmd+C to copy"
         fi
         ;;
         
@@ -345,15 +372,21 @@ if [ -d "$backup_dir" ]; then
         echo "Restored current session: $current_session"
     fi
     
-    # Create administrative audit to review changes
+    # Switch to AdminAudit for update review
     echo ""
-    echo "=== Creating Update Audit ==="
-    create_administrative_audit
+    echo "=== Switching to AdminAudit for Update Review ==="
+    if [ ! -d ".aicheck/actions/AdminAudit" ]; then
+        echo "Creating new AdminAudit action..."
+        create_new_action "AdminAudit"
+    else
+        echo "Switching to existing AdminAudit..."
+        switch_to_action "AdminAudit"
+    fi
     
     echo ""
     echo "=== Update Complete ==="
     echo "Your existing actions and sessions have been preserved."
-    echo "An administrative audit has been created to review the update."
+    echo "Switched to AdminAudit for update review."
     echo "Backup of previous installation is available in: $backup_dir"
 else
     echo ""
@@ -361,4 +394,10 @@ else
     echo "AICheck has been installed successfully!"
     echo "Use './ai' to interact with the system."
     echo "See README.md for more information."
+    
+    # Create initial AdminAudit action
+    echo ""
+    echo "=== Creating Initial AdminAudit ==="
+    create_new_action "AdminAudit"
+    echo "Created AdminAudit action for system management."
 fi

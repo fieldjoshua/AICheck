@@ -95,17 +95,30 @@ git commit -m "test: testing pre-commit hook"
 ### 3.1 Audit Creation
 
 ```bash
-# Test audit creation
+# Test audit functionality
 ./ai audit
 
 # Verify:
-# - Audit action created
+# - AdminAudit action exists or is created
 # - Set as ActiveAction
-# - Plan file created
+# - Plan file exists
 # - Human manager approval required
 ```
 
-### 3.2 Session Management
+### 3.2 Admin Mode
+
+```bash
+# Test admin mode
+./ai admin
+
+# Verify:
+# - Switches to AdminAudit action
+# - Maintains single AdminAudit instance
+# - Preserves audit history
+# - Human manager approval required
+```
+
+### 3.3 Session Management
 
 ```bash
 # Test session creation
@@ -117,7 +130,7 @@ git commit -m "test: testing pre-commit hook"
 # - Session ID generated
 ```
 
-### 3.3 Prompt Generation
+### 3.4 Prompt Generation
 
 ```bash
 # Test prompt generation
