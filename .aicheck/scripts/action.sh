@@ -15,11 +15,41 @@ NC='\033[0m' # No Color
 # Source security utilities
 source .aicheck/scripts/security_utils.sh
 
+# Function to validate action name
+validate_action_name() {
+    local action_name="$1"
+    
+    # Check if action name is provided
+    if [ -z "$action_name" ]; then
+        echo -e "${RED}Error: Action name is required${NC}" >&2
+        return 1
+    fi
+    
+    # Check for invalid characters
+    if [[ "$action_name" =~ [/\\] ]]; then
+        echo -e "${RED}Error: Action name contains invalid characters${NC}" >&2
+        return 1
+    fi
+    
+    return 0
+}
+
 # Function to create a new action
 create_action() {
     local action_name="$1"
     local action_dir=".aicheck/actions/$action_name"
     local plan_file="$action_dir/$action_name-PLAN.md"
+    
+    # Validate action name
+    if ! validate_action_name "$action_name"; then
+        return 1
+    fi
+    
+    # Check if action already exists
+    if [ -d "$action_dir" ]; then
+        echo -e "${RED}Error: Action '$action_name' already exists${NC}" >&2
+        return 1
+    fi
     
     # Validate paths
     validate_path "$action_dir"
@@ -56,6 +86,11 @@ check_status() {
     local action_dir=".aicheck/actions/$action_name"
     local plan_file="$action_dir/$action_name-PLAN.md"
     
+    # Validate action name
+    if ! validate_action_name "$action_name"; then
+        return 1
+    fi
+    
     # Validate paths
     validate_path "$action_dir"
     validate_path "$plan_file"
@@ -67,7 +102,7 @@ check_status() {
         cat "$plan_file"
         return 0
     else
-        echo -e "${RED}✗ Action '$action_name' not found${NC}"
+        echo -e "${RED}✗ Action '$action_name' not found${NC}" >&2
         return 1
     fi
 }
@@ -76,6 +111,11 @@ check_status() {
 switch_action() {
     local action_name="$1"
     local action_dir=".aicheck/actions/$action_name"
+    
+    # Validate action name
+    if ! validate_action_name "$action_name"; then
+        return 1
+    fi
     
     # Validate path
     validate_path "$action_dir"
@@ -87,7 +127,7 @@ switch_action() {
         echo -e "${GREEN}✓ Switched to action '$action_name'${NC}"
         return 0
     else
-        echo -e "${RED}✗ Action '$action_name' not found${NC}"
+        echo -e "${RED}✗ Action '$action_name' not found${NC}" >&2
         return 1
     fi
 }
@@ -96,6 +136,11 @@ switch_action() {
 delete_action() {
     local action_name="$1"
     local action_dir=".aicheck/actions/$action_name"
+    
+    # Validate action name
+    if ! validate_action_name "$action_name"; then
+        return 1
+    fi
     
     # Validate path
     validate_path "$action_dir"
@@ -106,7 +151,7 @@ delete_action() {
         echo -e "${GREEN}✓ Action '$action_name' deleted${NC}"
         return 0
     else
-        echo -e "${RED}✗ Action '$action_name' not found${NC}"
+        echo -e "${RED}✗ Action '$action_name' not found${NC}" >&2
         return 1
     fi
 }
@@ -126,7 +171,7 @@ case "$1" in
         delete_action "$2"
         ;;
     *)
-        echo "Usage: $0 {create|status|switch|delete} action_name"
+        echo "Usage: $0 {create|status|switch|delete} action_name" >&2
         exit 1
         ;;
 esac 

@@ -1,53 +1,38 @@
 #!/bin/bash
 
-# AICheck directory styling script
-# This script adds custom styling for AICheck directories in your shell
+# AICheck style script
+# This script sets up and maintains AICheck directory styling
 
 # Exit on error
 set -e
 
-# Security functions
-validate_path() {
-    local path="$1"
-    if [[ "$path" != .aicheck/* ]]; then
-        echo "Error: Invalid path access attempt" >&2
-        exit 1
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Function to set up directory styling
+setup_style() {
+    # Create necessary directories
+    mkdir -p .aicheck/sessions
+    mkdir -p .aicheck/hooks
+    mkdir -p .aicheck/scripts
+    mkdir -p .aicheck/actions
+    mkdir -p .aicheck/templates
+    mkdir -p .aicheck/docs
+    
+    # Set up Git hooks
+    if [ -d ".git" ]; then
+        if [ ! -f ".git/hooks/pre-commit" ]; then
+            ln -s ../../.aicheck/hooks/pre-commit .git/hooks/pre-commit
+        fi
     fi
+    
+    echo -e "${GREEN}AICheck directory styling has been set up.${NC}"
+    echo "Please add the following line to your shell's configuration file:"
+    echo "source ~/.aicheck/scripts/aicheck_style.sh"
 }
 
-check_permissions() {
-    local file="$1"
-    if [[ ! -O "$file" ]]; then
-        echo "Error: Insufficient permissions for $file" >&2
-        exit 1
-    fi
-}
-
-# Validate script path
-SCRIPT_DIR=".aicheck/scripts"
-validate_path "$SCRIPT_DIR"
-check_permissions "$SCRIPT_DIR"
-
-# Check if LS_COLORS is already set
-if [ -z "$LS_COLORS" ]; then
-    export LS_COLORS=""
-fi
-
-# Add purple color for AICheck directories
-export LS_COLORS="$LS_COLORS:di=0;35:*.md=0;35"
-
-# Add to your shell's configuration file
-# For bash: ~/.bashrc
-# For zsh: ~/.zshrc
-# For fish: ~/.config/fish/config.fish
-
-# Example for bash/zsh:
-# echo 'source ~/.aicheck/scripts/aicheck_style.sh' >> ~/.bashrc
-# echo 'source ~/.aicheck/scripts/aicheck_style.sh' >> ~/.zshrc
-
-# Example for fish:
-# echo 'source ~/.aicheck/scripts/aicheck_style.sh' >> ~/.config/fish/config.fish
-
-echo "AICheck directory styling has been set up."
-echo "Please add the following line to your shell's configuration file:"
-echo "source ~/.aicheck/scripts/aicheck_style.sh" 
+# Main script
+setup_style 

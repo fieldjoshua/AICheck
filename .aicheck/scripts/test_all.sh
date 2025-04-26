@@ -22,6 +22,7 @@ mkdir -p .aicheck/test_reports
 mkdir -p .aicheck/sessions
 mkdir -p .aicheck/hooks
 mkdir -p .aicheck/scripts
+mkdir -p .aicheck/actions
 
 # Function to run a test suite and update counts
 run_test_suite() {
@@ -44,6 +45,9 @@ run_test_suite() {
 # Function to test action management
 test_action_management() {
     local test_action="TestAction"
+    local test_action2="TestAction2"
+    
+    echo -e "\n${YELLOW}Testing Action Management...${NC}"
     
     # Test action creation
     if .aicheck/scripts/action.sh create "$test_action"; then
@@ -51,6 +55,15 @@ test_action_management() {
         ((PASSED_TESTS++))
     else
         echo -e "${RED}✗ Action creation test failed${NC}"
+        ((FAILED_TESTS++))
+    fi
+    
+    # Test duplicate action creation (should fail)
+    if ! .aicheck/scripts/action.sh create "$test_action"; then
+        echo -e "${GREEN}✓ Duplicate action creation test passed${NC}"
+        ((PASSED_TESTS++))
+    else
+        echo -e "${RED}✗ Duplicate action creation test failed${NC}"
         ((FAILED_TESTS++))
     fi
     
@@ -72,8 +85,106 @@ test_action_management() {
         ((FAILED_TESTS++))
     fi
     
-    # Cleanup test action
+    # Test switching to non-existent action (should fail)
+    if ! .aicheck/scripts/action.sh switch "NonExistentAction"; then
+        echo -e "${GREEN}✓ Non-existent action switch test passed${NC}"
+        ((PASSED_TESTS++))
+    else
+        echo -e "${RED}✗ Non-existent action switch test failed${NC}"
+        ((FAILED_TESTS++))
+    fi
+    
+    # Test multiple actions
+    if .aicheck/scripts/action.sh create "$test_action2"; then
+        echo -e "${GREEN}✓ Multiple action creation test passed${NC}"
+        ((PASSED_TESTS++))
+    else
+        echo -e "${RED}✗ Multiple action creation test failed${NC}"
+        ((FAILED_TESTS++))
+    fi
+    
+    # Test switching between multiple actions
+    if .aicheck/scripts/action.sh switch "$test_action2" && \
+       .aicheck/scripts/action.sh switch "$test_action"; then
+        echo -e "${GREEN}✓ Multiple action switching test passed${NC}"
+        ((PASSED_TESTS++))
+    else
+        echo -e "${RED}✗ Multiple action switching test failed${NC}"
+        ((FAILED_TESTS++))
+    fi
+    
+    # Cleanup test actions
     .aicheck/scripts/action.sh delete "$test_action"
+    .aicheck/scripts/action.sh delete "$test_action2"
+    
+    ((TOTAL_TESTS+=7))
+}
+
+# Function to test session management
+test_session_management() {
+    echo -e "\n${YELLOW}Testing Session Management...${NC}"
+    
+    # Test session creation
+    local session_id=$(create_secure_session)
+    if [ -n "$session_id" ]; then
+        echo -e "${GREEN}✓ Session creation test passed${NC}"
+        ((PASSED_TESTS++))
+    else
+        echo -e "${RED}✗ Session creation test failed${NC}"
+        ((FAILED_TESTS++))
+    fi
+    
+    # Test session file permissions
+    if [ -f ".aicheck/sessions/${session_id}.session" ]; then
+        local perms=$(stat -f %Lp ".aicheck/sessions/${session_id}.session")
+        if [ "$perms" -eq 600 ]; then
+            echo -e "${GREEN}✓ Session file permissions test passed${NC}"
+            ((PASSED_TESTS++))
+        else
+            echo -e "${RED}✗ Session file permissions test failed${NC}"
+            ((FAILED_TESTS++))
+        fi
+    else
+        echo -e "${RED}✗ Session file not found${NC}"
+        ((FAILED_TESTS++))
+    fi
+    
+    # Cleanup
+    rm -f ".aicheck/sessions/${session_id}.session"
+    
+    ((TOTAL_TESTS+=2))
+}
+
+# Function to test error handling
+test_error_handling() {
+    echo -e "\n${YELLOW}Testing Error Handling...${NC}"
+    
+    # Test invalid action name
+    if ! .aicheck/scripts/action.sh create "Invalid/Action"; then
+        echo -e "${GREEN}✓ Invalid action name test passed${NC}"
+        ((PASSED_TESTS++))
+    else
+        echo -e "${RED}✗ Invalid action name test failed${NC}"
+        ((FAILED_TESTS++))
+    fi
+    
+    # Test missing action name
+    if ! .aicheck/scripts/action.sh create; then
+        echo -e "${GREEN}✓ Missing action name test passed${NC}"
+        ((PASSED_TESTS++))
+    else
+        echo -e "${RED}✗ Missing action name test failed${NC}"
+        ((FAILED_TESTS++))
+    fi
+    
+    # Test invalid command
+    if ! .aicheck/scripts/action.sh invalid_command; then
+        echo -e "${GREEN}✓ Invalid command test passed${NC}"
+        ((PASSED_TESTS++))
+    else
+        echo -e "${RED}✗ Invalid command test failed${NC}"
+        ((FAILED_TESTS++))
+    fi
     
     ((TOTAL_TESTS+=3))
 }
@@ -89,8 +200,13 @@ run_test_suite "Security Tests" ".aicheck/scripts/test_security.sh"
 run_test_suite "Pre-commit Tests" ".aicheck/scripts/test_pre_commit.sh"
 
 # Run action management tests
-echo -e "\n${YELLOW}Running Action Management Tests...${NC}"
 test_action_management
+
+# Run session management tests
+test_session_management
+
+# Run error handling tests
+test_error_handling
 
 # Generate test report
 REPORT_FILE=".aicheck/test_reports/test_report_$(date +%Y%m%d_%H%M%S).txt"
@@ -109,6 +225,26 @@ REPORT_FILE=".aicheck/test_reports/test_report_$(date +%Y%m%d_%H%M%S).txt"
     echo "- Security Tests"
     echo "- Pre-commit Tests"
     echo "- Action Management Tests"
+    echo "- Session Management Tests"
+    echo "- Error Handling Tests"
+    echo ""
+    echo "Detailed Results:"
+    echo "----------------"
+    echo "Action Management:"
+    echo "- Action creation"
+    echo "- Duplicate action handling"
+    echo "- Action status checking"
+    echo "- Action switching"
+    echo "- Multiple action management"
+    echo ""
+    echo "Session Management:"
+    echo "- Session creation"
+    echo "- Session file permissions"
+    echo ""
+    echo "Error Handling:"
+    echo "- Invalid action names"
+    echo "- Missing parameters"
+    echo "- Invalid commands"
 } > "$REPORT_FILE"
 
 # Print summary

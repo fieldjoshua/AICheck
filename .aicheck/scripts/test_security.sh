@@ -16,6 +16,7 @@ NC='\033[0m' # No Color
 mkdir -p .aicheck/sessions
 mkdir -p .aicheck/hooks
 mkdir -p .aicheck/scripts
+mkdir -p .aicheck/actions
 
 # Source security utilities
 source .aicheck/scripts/security_utils.sh
