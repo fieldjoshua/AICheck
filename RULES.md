@@ -236,6 +236,7 @@ Regular audits should check:
 
 Date: $(date +"%Y-%m-%d")
 Version: 1.0.0
-# Test
-# Test
-# Test
+
+## Test Rule
+
+This is a test rule added to verify critical file change approvals.

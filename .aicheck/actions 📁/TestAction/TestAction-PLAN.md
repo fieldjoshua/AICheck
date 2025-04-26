@@ -20,12 +20,14 @@ This is a test action used to verify the approval system functionality.
 1. Test approval prompts
 2. Test approval state
 3. Test error handling
+4. Test pre-commit hook
 
 ## Implementation Plan
 
 1. Test approval prompts
 2. Test approval state
 3. Test error handling
+4. Test pre-commit hook
 
 ## Notes
 

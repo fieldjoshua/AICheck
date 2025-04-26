@@ -4,100 +4,6 @@
 
 source .aicheck/scripts/common.sh
 
-# Function to create administrative audit
-create_administrative_audit() {
-    local audit_id="AdminAudit_$(date +%Y%m%d%H%M%S)"
-    
-    # Check for human manager approval
-    check_human_manager_approval "Create Administrative Audit" "$audit_id"
-    
-    # Create audit directory and structure
-    mkdir -p ".aicheck/actions/$audit_id/supporting_docs"
-    
-    # Create audit plan from template
-    if [ -f ".aicheck/templates/administrative_audit.md" ]; then
-        cp .aicheck/templates/administrative_audit.md ".aicheck/actions/$audit_id/$audit_id-PLAN.md"
-        sed -i.bak "s/AUDIT_ID/$audit_id/g" ".aicheck/actions/$audit_id/$audit_id-PLAN.md"
-        rm -f ".aicheck/actions/$audit_id/$audit_id-PLAN.md.bak"
-    else
-        # Create basic audit plan if template doesn't exist
-        cat > ".aicheck/actions/$audit_id/$audit_id-PLAN.md" << EOP
-# $audit_id
-
-## Overview
-Administrative audit of the AICheck system.
-
-## Status
-Status: Not Started
-
-## Created
-Created: $(date +"%Y-%m-%d")
-
-## Last Updated
-Last Updated: $(date +"%Y-%m-%d")
-
-## Description
-This audit will review:
-1. System configuration
-2. Action statuses
-3. Documentation completeness
-4. Code quality
-5. Compliance with RULES.md
-
-## Requirements
-- Complete system access
-- Documentation review
-- Code review
-- Status verification
-
-## Implementation Plan
-1. Review system configuration
-2. Check all action statuses
-3. Verify documentation
-4. Review code quality
-5. Check RULES.md compliance
-
-## Notes
-<!-- Add any additional notes here -->
-EOP
-    fi
-    
-    # Add to actions index
-    local created_date=$(date +"%Y-%m-%d")
-    local last_updated=$(date +"%Y-%m-%d")
-    
-    if [ -f ".aicheck/docs/actions_index.md" ]; then
-        sed -i.bak '/^| Action | Status/a\
-| '"$audit_id"' | Not Started | 0% | AICheck Team | '"$created_date"' | '"$last_updated"' | Administrative | 1 |' .aicheck/docs/actions_index.md
-        rm -f .aicheck/docs/actions_index.md.bak
-    else
-        # Create actions index if it doesn't exist
-        mkdir -p .aicheck/docs
-        cat > .aicheck/docs/actions_index.md << EOI
-# AICheck Actions Index
-
-| Action | Status | Progress | Owner | Started | Last Updated | Type | Priority |
-|--------|--------|----------|-------|---------|-------------|------|----------|
-| $audit_id | Not Started | 0% | AICheck Team | $created_date | $created_date | Administrative | 1 |
-EOI
-    fi
-    
-    # Set as ActiveAction
-    echo "$audit_id" > .aicheck/current_action
-    
-    log_info "Created administrative audit: $audit_id"
-    echo "Created administrative audit: $audit_id"
-    echo "Audit plan: .aicheck/actions/$audit_id/$audit_id-PLAN.md"
-    echo "Set as ActiveAction"
-    
-    # Open in editor if available
-    if command -v code &> /dev/null; then
-        code ".aicheck/actions/$audit_id/$audit_id-PLAN.md"
-    else
-        echo "Open this file in your editor to begin the audit"
-    fi
-}
-
 # Function to show detailed status explanations
 show_status_explanations() {
     echo ""
@@ -161,10 +67,9 @@ check_action_status() {
     local current_session=$(cat .aicheck/current_session 2>/dev/null || echo "None")
     
     echo "=== AICheck Status ==="
-    echo "⚠️ CRITICAL: RULES.md is the controlling document for this project ⚠️"
-    echo "ActiveAction: $current_action"
-    echo "Current Session: $current_session"
-    echo "Actions Index: .aicheck/docs/actions_index.md (source of truth)"
+    echo "ActiveAction: $(format_aicheck_path "$current_action")"
+    echo "Current Session: $(format_aicheck_path "$current_session")"
+    echo "Actions Index: $(format_aicheck_path ".aicheck/docs/actions_index.md") (source of truth)"
     
     # Get status from actions_index.md (the source of truth)
     if [ "$current_action" != "None" ] && [ -f ".aicheck/docs/actions_index.md" ]; then
@@ -190,7 +95,10 @@ check_action_status() {
             echo "   - Completed: Action is finished and verified"
             echo "   - Blocked: Action is blocked by dependencies"
             echo "   - On Hold: Action is temporarily paused"
-            echo "3. Progress is tracked in .aicheck/docs/actions_index.md"
+            echo "3. Progress is tracked in $(format_aicheck_path ".aicheck/docs/actions_index.md")"
+            
+            echo ""
+            echo "⚠️ CRITICAL: RULES.md is the controlling document for this project ⚠️"
             
             # Show detailed status explanations
             show_status_explanations
@@ -201,7 +109,7 @@ check_action_status() {
     if [ "$current_action" != "None" ] && [ -f ".aicheck/actions/$current_action/$current_action-PLAN.md" ]; then
         echo ""
         echo "=== Action Details ==="
-        echo "Action Plan: .aicheck/actions/$current_action/$current_action-PLAN.md"
+        echo "Action Plan: $(format_aicheck_path ".aicheck/actions/$current_action/$current_action-PLAN.md")"
         head -n 10 ".aicheck/actions/$current_action/$current_action-PLAN.md"
         echo "..."
         
@@ -210,7 +118,7 @@ check_action_status() {
             if ! grep -q "| $current_action |" ".aicheck/docs/actions_index.md"; then
                 # Action exists but not in index - add it
                 echo ""
-                echo "Warning: Action $current_action exists but is not in the index."
+                echo "Warning: Action $(format_aicheck_path "$current_action") exists but is not in the index."
                 echo "Would you like to add it to the index? (y/n)"
                 read -r add_to_index
                 
@@ -229,7 +137,7 @@ check_action_status() {
 | '"$current_action"' | '"$action_file_status"' | 0% | AICheck Team | '"$created_date"' | '"$last_updated"' | Standard Action | 3 |' .aicheck/docs/actions_index.md
                     rm -f .aicheck/docs/actions_index.md.bak
                     log_info "Added $current_action to actions index with status: $action_file_status"
-                    echo "Added $current_action to actions index with status: $action_file_status"
+                    echo "Added $(format_aicheck_path "$current_action") to actions index with status: $action_file_status"
                 fi
             fi
         fi
@@ -240,28 +148,30 @@ check_action_status() {
         echo ""
         echo "=== Supporting Documents ==="
         echo "Supporting Documentation:"
-        echo "Location: .aicheck/actions/$current_action/supporting_docs/"
-        find ".aicheck/actions/$current_action/supporting_docs" -type f | sed 's/^/- /'
+        echo "Location: $(format_aicheck_path ".aicheck/actions/$current_action/supporting_docs/")"
+        find ".aicheck/actions/$current_action/supporting_docs" -type f | while read file; do
+            echo "- $(format_aicheck_path "$file")"
+        done
     fi
     
     # Show reference paths
     echo ""
     echo "=== Reference Paths ==="
     echo "- RULES.md: Project rules and guidelines (MUST READ)"
-    echo "- .aicheck/actions/: Action-specific directories"
-    echo "- .aicheck/docs/actions_index.md: Action tracking and status"
-    echo "- .aicheck/templates/: Template files"
-    echo "- .aicheck/sessions/: Session data"
-    echo "- .aicheck/current_action: ActiveAction tracking"
-    echo "- .aicheck/current_session: Current active session"
+    echo "- $(format_aicheck_path ".aicheck/actions/") : Action-specific directories"
+    echo "- $(format_aicheck_path ".aicheck/docs/actions_index.md") : Action tracking and status"
+    echo "- $(format_aicheck_path ".aicheck/templates/") : Template files"
+    echo "- $(format_aicheck_path ".aicheck/sessions/") : Session data"
+    echo "- $(format_aicheck_path ".aicheck/current_action") : ActiveAction tracking"
+    echo "- $(format_aicheck_path ".aicheck/current_session") : Current active session"
     
     # Show action scope
     echo ""
     echo "=== Action Scope ==="
     echo "The ActiveAction's scope is defined in:"
-    echo "- .aicheck/actions/$current_action/$current_action-PLAN.md"
-    echo "- Any supporting documents in .aicheck/actions/$current_action/supporting_docs/"
-    echo "- The action's entry in .aicheck/docs/actions_index.md"
+    echo "- $(format_aicheck_path ".aicheck/actions/$current_action/$current_action-PLAN.md")"
+    echo "- Any supporting documents in $(format_aicheck_path ".aicheck/actions/$current_action/supporting_docs/")"
+    echo "- The action's entry in $(format_aicheck_path ".aicheck/docs/actions_index.md")"
 }
 
 # Function to validate action name
@@ -382,24 +292,73 @@ validate_progress() {
 check_human_manager_approval() {
     local action_type=$1
     local action_name=$2
+    local current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
     
-    echo "⚠️ REQUIRES HUMAN MANAGER APPROVAL ⚠️"
-    echo "This action requires explicit human manager approval:"
-    echo "- Action Type: $action_type"
-    echo "- Action Name: $action_name"
-    echo ""
-    echo "Human manager: Please type 'y' in the chat to approve this action"
-    read -r has_approval
+    # Always require approval for these actions (per RULES.md)
+    local require_approval=false
+    case "$action_type" in
+        "Change ActiveAction"|"Create New Action"|"Update Action Status"|"Modify Action Plan"|"Create Template"|"Modify Template"|"Commit")
+            require_approval=true
+            ;;
+    esac
     
-    if [ "$has_approval" != "y" ]; then
-        log_error "Human manager approval required for $action_type: $action_name"
-        echo "Error: Human manager approval required"
-        echo "Please get approval before proceeding"
-        exit 1
+    # If approval is required, show the prompt
+    if [ "$require_approval" = true ]; then
+        # Warning header in neon orange
+        echo -e "${AICHECK_ORANGE}${AICHECK_BOLD}"
+        echo "⚠️ ⚠️ ⚠️ APPROVAL REQUIRED ⚠️ ⚠️ ⚠️"
+        echo -e "${AICHECK_RESET}"
+        
+        # Rest of the message in purple
+        echo -e "${AICHECK_PURPLE}${AICHECK_BOLD}"
+        echo "This action requires explicit human manager approval:"
+        echo "- Action Type: $action_type"
+        echo "- Action Name: $action_name"
+        echo -e "${AICHECK_RESET}"
+        
+        # Play alert sound if available (only once)
+        if command -v afplay &> /dev/null; then
+            afplay /System/Library/Sounds/Glass.aiff &
+        elif command -v paplay &> /dev/null; then
+            paplay /usr/share/sounds/freedesktop/stereo/complete.oga &
+        fi
+        
+        # Human manager line in orange and caps
+        echo -e "${AICHECK_ORANGE}${AICHECK_BOLD}"
+        echo "HUMAN MANAGER: PLEASE TYPE 'y' TO APPROVE THIS ACTION"
+        echo -e "${AICHECK_RESET}"
+        read -r has_approval
+        
+        # Move cursor to new line
+        tput cud1
+        
+        if [[ ! "$has_approval" =~ ^[Yy]$ ]]; then
+            log_error "Human manager approval required for $action_type: $action_name"
+            echo -e "${AICHECK_ORANGE}${AICHECK_BOLD}"
+            echo "❌ APPROVAL REJECTED"
+            echo "Please explain why this action was rejected."
+            echo "The action will remain in its current state."
+            echo -e "${AICHECK_RESET}"
+            exit 1
+        fi
+        
+        log_info "Human manager approval confirmed for $action_type: $action_name"
+        
+        # Clear visual separator
+        echo ""
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
+        
+        # Approval confirmation in orange
+        echo -e "${AICHECK_ORANGE}${AICHECK_BOLD}"
+        echo "✅ APPROVAL CONFIRMED"
+        echo "Action: $action_name"
+        echo "Type: $action_type"
+        echo -e "${AICHECK_RESET}"
+        
+        # Return success instead of exiting
+        return 0
     fi
-    
-    log_info "Human manager approval confirmed for $action_type: $action_name"
-    echo "✅ Human manager approval confirmed"
 }
 
 # Function to create a new action
@@ -504,6 +463,22 @@ EOI
 switch_to_action() {
     local action_name=$1
     local action_dir=".aicheck/actions/$action_name"
+    local current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+    
+    # If we're in AdminAudit and switching to a different action, show a special message
+    if [ "$current_action" == "AdminAudit" ] && [ "$action_name" != "AdminAudit" ]; then
+        echo "=== Exiting Administrative Audit ==="
+        echo "This will switch from system-level changes to working on a specific action."
+        echo "Please confirm you want to switch to: $action_name"
+        echo ""
+        echo "Type 'y' to confirm, or any other key to stay in AdminAudit"
+        read -r confirm_switch
+        
+        if [[ ! "$confirm_switch" =~ ^[Yy]$ ]]; then
+            echo "Staying in AdminAudit mode"
+            return 0
+        fi
+    fi
     
     # Check for human manager approval
     check_human_manager_approval "Change ActiveAction" "$action_name"
@@ -518,9 +493,6 @@ switch_to_action() {
     echo "Switched to action: $action_name"
     echo "Action plan: $action_dir/$action_name-PLAN.md"
     echo "Set as ActiveAction"
-    
-    # Show action status
-    check_action_status
 }
 
 # Function to update action status
@@ -584,5 +556,122 @@ update_action_progress() {
         log_error "Action $action_name not found in index"
         echo "Error: Action $action_name not found in index"
         exit 1
+    fi
+}
+
+# Function to check if changes are substantive
+is_substantive_change() {
+    local file=$1
+    # Get the diff content
+    local diff_content=$(git diff -- "$file")
+    
+    # Check for changes to content (not just whitespace)
+    if echo "$diff_content" | grep -q "^[+-][^+-]"; then
+        return 0  # Substantive change found
+    fi
+    return 1  # No substantive change
+}
+
+# Function to validate actions index format
+validate_actions_index() {
+    local index_file=".aicheck/docs/actions_index.md"
+    if [ -f "$index_file" ]; then
+        # Check for required columns
+        if ! grep -q "| Action | Status | Progress | Owner | Started | Last Updated | Type | Priority |" "$index_file"; then
+            echo "❌ Error: Actions index is missing required columns"
+            echo "Please ensure the index has all required columns"
+            exit 1
+        fi
+        
+        # Check for valid status values
+        while IFS= read -r line; do
+            # Skip header and separator lines
+            if [[ "$line" == *"| Action |"* ]] || [[ "$line" == *"|--------|"* ]]; then
+                continue
+            fi
+            
+            if [[ "$line" =~ \|[[:space:]]*[^|]+[[:space:]]*\|[[:space:]]*([^|]+)[[:space:]]*\| ]]; then
+                local status="${BASH_REMATCH[1]}"
+                status=$(echo "$status" | xargs)  # Trim whitespace
+                case "$status" in
+                    "Not Started"|"ActiveAction"|"Completed"|"Blocked"|"On Hold")
+                        continue
+                        ;;
+                    *)
+                        echo "❌ Error: Invalid status in actions index: $status"
+                        echo "Status must be one of: Not Started, ActiveAction, Completed, Blocked, On Hold"
+                        exit 1
+                        ;;
+                esac
+            fi
+        done < "$index_file"
+    fi
+}
+
+# Function to commit changes with approval
+commit_changes() {
+    local commit_message=$1
+    local current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+    local action_plan=".aicheck/actions/$current_action/$current_action-PLAN.md"
+    
+    # Get list of files that would be committed
+    local files=$(git diff --name-only)
+    
+    # Check for changes to critical files
+    local critical_files=(
+        "RULES.md"
+        ".aicheck/docs/actions_index.md"
+        ".aicheck/current_action"
+    )
+    
+    for file in "${critical_files[@]}"; do
+        if echo "$files" | grep -q "^$file$"; then
+            if is_substantive_change "$file"; then
+                # Check for human manager approval
+                check_human_manager_approval "Commit" "$file"
+            fi
+        fi
+    done
+    
+    # Check for changes to action plans
+    if [ "$current_action" != "None" ]; then
+        if [ -f "$action_plan" ] && echo "$files" | grep -q "^$action_plan$"; then
+            if is_substantive_change "$action_plan"; then
+                check_human_manager_approval "Commit" "$current_action"
+            fi
+        fi
+    fi
+    
+    # Check for changes to templates
+    if echo "$files" | grep -q "^.aicheck/templates/"; then
+        for template in $(echo "$files" | grep "^.aicheck/templates/"); do
+            if is_substantive_change "$template"; then
+                check_human_manager_approval "Commit" "$template"
+            fi
+        done
+    fi
+    
+    # Check if action requires human approval
+    if [ "$current_action" != "None" ] && [ -f "$action_plan" ]; then
+        if grep -q "REQUIRES HUMAN MANAGER APPROVAL" "$action_plan"; then
+            check_human_manager_approval "Commit" "$current_action"
+        fi
+    fi
+    
+    # Validate actions index before committing
+    validate_actions_index
+    
+    # All checks passed, stage and commit
+    git add .
+    git commit -m "$commit_message"
+    local exit_code=$?
+    
+    if [ $exit_code -eq 0 ]; then
+        log_info "Successfully committed changes: $commit_message"
+        echo "✅ Successfully committed changes"
+    else
+        log_error "Failed to commit changes: $commit_message"
+        echo "❌ Failed to commit changes"
+        exit $exit_code
     fi
 } 
