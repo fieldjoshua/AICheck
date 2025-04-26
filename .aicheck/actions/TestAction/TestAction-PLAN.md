@@ -1,7 +1,7 @@
 # TestAction
 
 ## Overview
-<!-- Add action overview here -->
+Test action for testing the approval system.
 
 ## Status
 Status: Not Started
@@ -13,13 +13,25 @@ Created: 2025-04-26
 Last Updated: 2025-04-26
 
 ## Description
-<!-- Add detailed description here -->
+This is a test action used to verify the approval system functionality.
 
 ## Requirements
-<!-- List requirements here -->
+
+1. Test approval prompts
+2. Test approval state
+3. Test error handling
 
 ## Implementation Plan
-<!-- Add implementation steps here -->
+
+1. Test approval prompts
+2. Test approval state
+3. Test error handling
 
 ## Notes
-<!-- Add any additional notes here -->
+
+This action is used for testing purposes only.
+
+## Files in Scope
+
+- .aicheck/actions/TestAction/TestAction-PLAN.md
+- .aicheck/actions/TestAction/supporting_docs/
