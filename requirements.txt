@@ -1,0 +1,13 @@
+# Core dependencies
+click>=8.0.0        # Command line interface
+colorama>=0.4.4     # Terminal colors
+gitpython>=3.1.0    # Git integration
+pyyaml>=6.0.0       # YAML file handling
+rich>=10.0.0        # Rich text and formatting
+termcolor>=2.3.0    # Terminal coloring
+
+# Development dependencies
+pytest>=7.0.0       # Testing framework
+black>=22.0.0       # Code formatting
+flake8>=4.0.0       # Code linting
+mypy>=1.0.0         # Type checking 
