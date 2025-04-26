@@ -1,117 +1,108 @@
-# Contributing to UltraAICheck
+# Contributing to AICheck
 
-Thank you for your interest in contributing to UltraAICheck! This document provides guidelines and instructions for contributing to the project.
+Thank you for your interest in contributing to AICheck! This document provides guidelines and instructions for contributing.
 
 ## Code of Conduct
 
-By participating in this project, you agree to abide by our Code of Conduct. Please read it before contributing.
+By participating in this project, you agree to maintain a respectful and inclusive environment for everyone.
 
 ## How to Contribute
 
-### Reporting Bugs
-
-1. Check if the bug has already been reported in the Issues section
-2. If not, create a new issue with a clear title and description
-3. Include steps to reproduce the bug
-4. Add any relevant logs or error messages
-5. Specify your environment (OS, version, etc.)
-
-### Suggesting Features
-
-1. Check if the feature has already been suggested
-2. Create a new issue with a clear title and description
-3. Explain why this feature would be useful
-4. Provide any relevant examples or use cases
-
-### Pull Requests
-
-1. Fork the repository
-2. Create a new branch for your feature/fix
-3. Make your changes
-4. Add tests if applicable
-5. Update documentation
-6. Submit a pull request
-
-## Development Setup
-
-1. Clone the repository:
+### 1. Fork and Clone
 
 ```bash
-git clone https://github.com/fieldjoshua/AICheck.git
+git clone https://github.com/your-username/AICheck.git
 cd AICheck
 ```
 
-2. Make the script executable:
+### 2. Set Up Development Environment
 
 ```bash
-chmod +x ultra-aicheck.sh
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate  # Unix/macOS
+# OR
+.venv\Scripts\activate     # Windows
+
+# Install development dependencies
+pip install -r requirements.txt
 ```
 
-3. Run the installer:
+### 3. Development Workflow
 
-```bash
-./ultra-aicheck.sh
-```
+1. Create a new branch:
 
-## Coding Standards
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
 
-- Follow the existing code style
-- Use meaningful variable and function names
-- Add comments for complex logic
+2. Make your changes
+
+3. Run tests:
+
+   ```bash
+   pytest
+   ```
+
+4. Format code:
+
+   ```bash
+   black .
+   ```
+
+5. Check types:
+
+   ```bash
+   mypy .
+   ```
+
+6. Lint code:
+
+   ```bash
+   flake8
+   ```
+
+### 4. Commit Guidelines
+
+- Use clear, descriptive commit messages
+- Reference issues and pull requests in commit messages
+- Keep commits focused and atomic
+
+### 5. Pull Request Process
+
+1. Update documentation for any new features
+2. Add tests for new functionality
+3. Ensure all tests pass
+4. Update the changelog
+5. Submit a pull request
+
+## Development Standards
+
+### Code Style
+
+- Follow PEP 8 guidelines
+- Use type hints
+- Write docstrings for all functions
 - Keep functions small and focused
-- Write clear commit messages
 
-## Testing
+### Testing
 
-- Test your changes thoroughly
-- Add new tests for new features
-- Ensure all existing tests pass
-- Test on different environments if possible
+- Write unit tests for new features
+- Maintain test coverage
+- Include both positive and negative test cases
 
-## Documentation
+### Documentation
 
-- Update README.md if needed
-- Add comments to new code
-- Update any relevant documentation
-- Follow the existing documentation style
-
-## Commit Messages
-
-Follow these guidelines for commit messages:
-
-- Use the present tense ("Add feature" not "Added feature")
-- Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
-- Limit the first line to 72 characters or less
-- Reference issues and pull requests liberally
-- Consider starting the commit message with an applicable emoji:
-  - 🎨 `:art:` when improving the format/structure of the code
-  - 🐎 `:racehorse:` when improving performance
-  - 🚱 `:non-potable_water:` when plugging memory leaks
-  - 📝 `:memo:` when writing docs
-  - 🐛 `:bug:` when fixing a bug
-  - 🔥 `:fire:` when removing code or files
-  - 💚 `:green_heart:` when fixing the CI build
-  - ✅ `:white_check_mark:` when adding tests
-  - 🔒 `:lock:` when dealing with security
-  - ⬆️ `:arrow_up:` when upgrading dependencies
-  - ⬇️ `:arrow_down:` when downgrading dependencies
-
-## Review Process
-
-1. All pull requests will be reviewed by maintainers
-2. Reviews may take some time, please be patient
-3. Address any feedback or requested changes
-4. Once approved, your changes will be merged
+- Update README.md for major changes
+- Document new features
+- Keep code comments clear and helpful
 
 ## Getting Help
 
-If you need help with contributing:
-
-1. Check the documentation
-2. Look through existing issues
-3. Ask in the discussions section
-4. Contact the maintainers
+- Open an issue for bugs
+- Use discussions for questions
+- Join our community chat
 
 ## License
 
-By contributing to UltraAICheck, you agree that your contributions will be licensed under the project's MIT License.
+By contributing, you agree that your contributions will be licensed under the project's MIT License.
