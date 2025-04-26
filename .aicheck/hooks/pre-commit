@@ -3,26 +3,55 @@
 # AICheck pre-commit hook
 # This hook runs before each commit to ensure code quality
 
+# Exit on error
+set -e
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
+# Security functions
+validate_path() {
+    local path="$1"
+    if [[ "$path" != .aicheck/* ]]; then
+        echo -e "${RED}Error: Invalid path access attempt${NC}"
+        exit 1
+    fi
+}
+
+check_permissions() {
+    local file="$1"
+    if [[ ! -O "$file" ]]; then
+        echo -e "${RED}Error: Insufficient permissions for $file${NC}"
+        exit 1
+    fi
+}
+
+# Validate script paths
+SCRIPT_DIR=".aicheck/scripts"
+HOOK_DIR=".aicheck/hooks"
+
+validate_path "$SCRIPT_DIR"
+validate_path "$HOOK_DIR"
+
 echo "Running AICheck pre-commit checks..."
 
 # Run style check
-if [ -f ".aicheck/scripts/aicheck_style.sh" ]; then
+if [ -f "$SCRIPT_DIR/aicheck_style.sh" ]; then
+    check_permissions "$SCRIPT_DIR/aicheck_style.sh"
     echo "Checking AICheck style..."
-    source .aicheck/scripts/aicheck_style.sh
+    source "$SCRIPT_DIR/aicheck_style.sh"
 else
     echo -e "${RED}Error: Style check script not found${NC}"
     exit 1
 fi
 
 # Run test script
-if [ -f ".aicheck/scripts/test_pre_commit.sh" ]; then
+if [ -f "$SCRIPT_DIR/test_pre_commit.sh" ]; then
+    check_permissions "$SCRIPT_DIR/test_pre_commit.sh"
     echo "Running pre-commit tests..."
-    .aicheck/scripts/test_pre_commit.sh
+    "$SCRIPT_DIR/test_pre_commit.sh"
 else
     echo -e "${RED}Error: Test script not found${NC}"
     exit 1

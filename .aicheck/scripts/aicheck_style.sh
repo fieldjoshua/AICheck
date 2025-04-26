@@ -3,6 +3,31 @@
 # AICheck directory styling script
 # This script adds custom styling for AICheck directories in your shell
 
+# Exit on error
+set -e
+
+# Security functions
+validate_path() {
+    local path="$1"
+    if [[ "$path" != .aicheck/* ]]; then
+        echo "Error: Invalid path access attempt" >&2
+        exit 1
+    fi
+}
+
+check_permissions() {
+    local file="$1"
+    if [[ ! -O "$file" ]]; then
+        echo "Error: Insufficient permissions for $file" >&2
+        exit 1
+    fi
+}
+
+# Validate script path
+SCRIPT_DIR=".aicheck/scripts"
+validate_path "$SCRIPT_DIR"
+check_permissions "$SCRIPT_DIR"
+
 # Check if LS_COLORS is already set
 if [ -z "$LS_COLORS" ]; then
     export LS_COLORS=""
