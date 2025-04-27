@@ -1,177 +1,138 @@
 #!/bin/bash
+# .aicheck/scripts/action.sh
+# RULES.md-compliant action management functions
 
-# Action management script for AICheck
-# This script handles action creation, status, and switching
+actions_dir=".aicheck/actions"
+index_file=".aicheck/docs/actions_index.md"
 
-# Exit on error
-set -e
-
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
-
-# Source security utilities
-source .aicheck/scripts/security_utils.sh
-
-# Function to validate action name
-validate_action_name() {
+# Create a new action
+action_create() {
     local action_name="$1"
-    
-    # Check if action name is provided
-    if [ -z "$action_name" ]; then
-        echo -e "${RED}Error: Action name is required${NC}" >&2
-        return 1
-    fi
-    
-    # Check for invalid characters
-    if [[ "$action_name" =~ [/\\] ]]; then
-        echo -e "${RED}Error: Action name contains invalid characters${NC}" >&2
-        return 1
-    fi
-    
-    return 0
-}
+    local action_dir="$actions_dir/$action_name"
+    local plan_file="$action_dir/${action_name}-PLAN.md"
+    local status_file="$action_dir/status.md"
+    local progress_file="$action_dir/progress.md"
+    local docs_dir="$action_dir/supporting_docs"
 
-# Function to create a new action
-create_action() {
-    local action_name="$1"
-    local action_dir=".aicheck/actions/$action_name"
-    local plan_file="$action_dir/$action_name-PLAN.md"
-    
-    # Validate action name
-    if ! validate_action_name "$action_name"; then
+    if [[ -z "$action_name" ]]; then
+        echo "[action_create] Error: Action name required." >&2
         return 1
     fi
-    
-    # Check if action already exists
-    if [ -d "$action_dir" ]; then
-        echo -e "${RED}Error: Action '$action_name' already exists${NC}" >&2
+    if [[ ! "$action_name" =~ ^[A-Z][a-zA-Z0-9]+$ ]]; then
+        echo "[action_create] Error: Action name must be PascalCase (e.g., MyAction)." >&2
         return 1
     fi
-    
-    # Validate paths
-    validate_path "$action_dir"
-    validate_path "$plan_file"
-    
-    # Create action directory
-    mkdir -p "$action_dir"
-    
-    # Create plan file
-    cat > "$plan_file" << EOL
+    if [[ -d "$action_dir" ]]; then
+        echo "[action_create] Error: Action '$action_name' already exists." >&2
+        return 1
+    fi
+    mkdir -p "$docs_dir"
+    cat > "$plan_file" <<EOL
 # $action_name Action Plan
 
 ## Purpose
-[Purpose of the action]
+[Describe the purpose of this action.]
 
-## Implementation Steps
-1. [First step]
-2. [Second step]
-3. [Third step]
+## Steps
+- [ ] Step 1
+- [ ] Step 2
 
-## Success Criteria
-- [First criterion]
-- [Second criterion]
-- [Third criterion]
+## Notes
 EOL
-    
-    echo -e "${GREEN}✓ Action '$action_name' created successfully${NC}"
-    return 0
+    echo "Not Started" > "$status_file"
+    echo "0%" > "$progress_file"
+    echo "[action_create] Created action '$action_name' at $action_dir."
 }
 
-# Function to check action status
-check_status() {
+# Switch to an action
+action_switch() {
     local action_name="$1"
-    local action_dir=".aicheck/actions/$action_name"
-    local plan_file="$action_dir/$action_name-PLAN.md"
-    
-    # Validate action name
-    if ! validate_action_name "$action_name"; then
+    local action_dir="$actions_dir/$action_name"
+    local current_action_file=".aicheck/current_action"
+    if [[ -z "$action_name" ]]; then
+        echo "[action_switch] Error: Action name required." >&2
         return 1
     fi
-    
-    # Validate paths
-    validate_path "$action_dir"
-    validate_path "$plan_file"
-    
-    # Check if action exists
-    if [ -d "$action_dir" ] && [ -f "$plan_file" ]; then
-        echo -e "${GREEN}✓ Action '$action_name' exists${NC}"
-        echo -e "\nPlan contents:"
+    if [[ ! -d "$action_dir" ]]; then
+        echo "[action_switch] Error: Action '$action_name' does not exist." >&2
+        return 1
+    fi
+    echo "$action_name" > "$current_action_file"
+    echo "[action_switch] Switched to action '$action_name'."
+}
+
+# Show action status
+action_status() {
+    local action_name="$1"
+    local action_dir="$actions_dir/$action_name"
+    local plan_file="$action_dir/${action_name}-PLAN.md"
+    local status_file="$action_dir/status.md"
+    local progress_file="$action_dir/progress.md"
+    if [[ -z "$action_name" ]]; then
+        echo "[action_status] Error: Action name required." >&2
+        return 1
+    fi
+    if [[ ! -d "$action_dir" ]]; then
+        echo "[action_status] Error: Action '$action_name' does not exist." >&2
+        return 1
+    fi
+    echo "[action_status] Action: $action_name"
+    [[ -f "$status_file" ]] && echo "Status: $(cat "$status_file")"
+    [[ -f "$progress_file" ]] && echo "Progress: $(cat "$progress_file")"
+    if [[ -f "$plan_file" ]]; then
+        echo "Plan file: $plan_file"
         cat "$plan_file"
-        return 0
     else
-        echo -e "${RED}✗ Action '$action_name' not found${NC}" >&2
-        return 1
+        echo "No plan file found for action '$action_name'."
     fi
 }
 
-# Function to switch to an action
-switch_action() {
+# Delete an action
+action_delete() {
     local action_name="$1"
-    local action_dir=".aicheck/actions/$action_name"
-    
-    # Validate action name
-    if ! validate_action_name "$action_name"; then
+    local action_dir="$actions_dir/$action_name"
+    if [[ -z "$action_name" ]]; then
+        echo "[action_delete] Error: Action name required." >&2
         return 1
     fi
-    
-    # Validate path
-    validate_path "$action_dir"
-    
-    # Check if action exists
-    if [ -d "$action_dir" ]; then
-        # Create/update current action symlink
-        ln -sf "$action_name" .aicheck/current_action
-        echo -e "${GREEN}✓ Switched to action '$action_name'${NC}"
-        return 0
-    else
-        echo -e "${RED}✗ Action '$action_name' not found${NC}" >&2
+    if [[ ! -d "$action_dir" ]]; then
+        echo "[action_delete] Error: Action '$action_name' does not exist." >&2
         return 1
     fi
+    rm -rf "$action_dir"
+    echo "[action_delete] Deleted action '$action_name'."
 }
 
-# Function to delete an action
-delete_action() {
+# Update action status
+action_update_status() {
     local action_name="$1"
-    local action_dir=".aicheck/actions/$action_name"
-    
-    # Validate action name
-    if ! validate_action_name "$action_name"; then
+    local status="$2"
+    local status_file="$actions_dir/$action_name/status.md"
+    if [[ -z "$action_name" || -z "$status" ]]; then
+        echo "[action_update_status] Error: Action name and status required." >&2
         return 1
     fi
-    
-    # Validate path
-    validate_path "$action_dir"
-    
-    # Check if action exists
-    if [ -d "$action_dir" ]; then
-        rm -rf "$action_dir"
-        echo -e "${GREEN}✓ Action '$action_name' deleted${NC}"
-        return 0
-    else
-        echo -e "${RED}✗ Action '$action_name' not found${NC}" >&2
+    if [[ ! -d "$actions_dir/$action_name" ]]; then
+        echo "[action_update_status] Error: Action '$action_name' does not exist." >&2
         return 1
     fi
+    echo "$status" > "$status_file"
+    echo "[action_update_status] Updated status for '$action_name' to '$status'."
 }
 
-# Main script
-case "$1" in
-    create)
-        create_action "$2"
-        ;;
-    status)
-        check_status "$2"
-        ;;
-    switch)
-        switch_action "$2"
-        ;;
-    delete)
-        delete_action "$2"
-        ;;
-    *)
-        echo "Usage: $0 {create|status|switch|delete} action_name" >&2
-        exit 1
-        ;;
-esac 
+# Update action progress
+action_update_progress() {
+    local action_name="$1"
+    local progress="$2"
+    local progress_file="$actions_dir/$action_name/progress.md"
+    if [[ -z "$action_name" || -z "$progress" ]]; then
+        echo "[action_update_progress] Error: Action name and progress required." >&2
+        return 1
+    fi
+    if [[ ! -d "$actions_dir/$action_name" ]]; then
+        echo "[action_update_progress] Error: Action '$action_name' does not exist." >&2
+        return 1
+    fi
+    echo "$progress" > "$progress_file"
+    echo "[action_update_progress] Updated progress for '$action_name' to '$progress'."
+} 

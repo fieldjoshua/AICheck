@@ -1,4 +1,5 @@
 #!/bin/bash
+# ai - Unified AICheck interface (RULES.md-compliant)
 
 # AICheck command interface
 # Provides a unified interface for all AICheck functionality
@@ -8,6 +9,12 @@
 source .aicheck/scripts/common.sh
 source .aicheck/scripts/session.sh
 source .aicheck/scripts/action.sh
+source .aicheck/scripts/security_utils.sh
+
+usage() {
+    echo "Usage: ./ai {start|end|create|switch|status|delete|update-status|update-progress} [action_name] [value]"
+    exit 1
+}
 
 command=$1
 shift
@@ -16,23 +23,42 @@ case "$command" in
     start)
         start_session
         ;;
-        
+    end)
+        end_session
+        ;;
+    create)
+        action_name="$1"
+        if ! is_pascal_case "$action_name"; then
+            log_error "ACTION001" "Action name must be PascalCase (e.g., MyAction)." "Use a valid name."
+            exit 1
+        fi
+        action_create "$action_name"
+        ;;
+    switch)
+        action_name="$1"
+        action_switch "$action_name"
+        ;;
+    status)
+        action_name="$1"
+        action_status "$action_name"
+        ;;
+    delete)
+        action_name="$1"
+        action_delete "$action_name"
+        ;;
+    update-status)
+        action_name="$1"
+        status="$2"
+        action_update_status "$action_name" "$status"
+        ;;
+    update-progress)
+        action_name="$1"
+        progress="$2"
+        action_update_progress "$action_name" "$progress"
+        ;;
     prompt)
         generate_prompt
         ;;
-        
-    status)
-        check_action_status
-        ;;
-    
-    update-status)
-        update_action_status "$1" "$2"
-        ;;
-        
-    update-progress)
-        update_action_progress "$1" "$2"
-        ;;
-        
     commit)
         if [ -z "$1" ]; then
             echo "Error: Commit message required"
@@ -41,7 +67,6 @@ case "$command" in
         fi
         commit_changes "$1"
         ;;
-        
     new)
         if [ -z "$1" ]; then
             echo "Error: Action name required"
@@ -50,16 +75,6 @@ case "$command" in
         fi
         create_new_action "$1"
         ;;
-        
-    switch)
-        if [ -z "$1" ]; then
-            echo "Error: Action name required"
-            echo "Usage: ./ai switch <action_name>"
-            exit 1
-        fi
-        switch_to_action "$1"
-        ;;
-        
     audit)
         # Switch to or create AdminAudit action
         echo "=== Switching to Administrative Audit ==="
@@ -79,7 +94,6 @@ case "$command" in
             switch_to_action "AdminAudit"
         fi
         ;;
-        
     admin)
         # Switch to or create AdminAudit action
         echo "=== Switching to Administrative Audit ==="
@@ -99,7 +113,6 @@ case "$command" in
             switch_to_action "AdminAudit"
         fi
         ;;
-        
     cursor)
         # Prepare for Cursor chat
         echo "=== Preparing for Cursor Chat ==="
@@ -161,7 +174,6 @@ EOC
             echo "Context copied to clipboard"
         fi
         ;;
-        
     "check!")
         # Generate a quick check prompt for AI editors
         echo "=== Generating AI Editor Check Prompt ==="
@@ -201,22 +213,7 @@ You can proceed with implementation if your work complies with RULES.md and fall
             echo "Please copy the above prompt manually"
         fi
         ;;
-        
     *)
-        echo "Usage: ./ai <command> [args]"
-        echo "Commands:"
-        echo "  start           - Start a new AI session"
-        echo "  prompt          - Generate a prompt template"
-        echo "  status          - Check ActiveAction status"
-        echo "  update-status   - Update action status"
-        echo "  update-progress - Update action progress"
-        echo "  commit          - Commit changes with approval"
-        echo "  new            - Create a new action"
-        echo "  switch         - Switch to an existing action"
-        echo "  audit           - Create an administrative audit action"
-        echo "  admin           - Enter admin mode"
-        echo "  cursor          - Prepare for Cursor chat"
-        echo "  check!          - Generate AI editor check prompt"
-        exit 1
+        usage
         ;;
 esac

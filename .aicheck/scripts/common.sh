@@ -1,3 +1,4 @@
+#!/bin/bash
 # .aicheck/scripts/common.sh
 # Placeholder stub for compatibility with ai script. 
 
@@ -95,4 +96,23 @@ switch_to_action() {
         echo "Action $action does not exist."
         return 1
     fi
+}
+
+# Validate PascalCase (for Action names)
+is_pascal_case() {
+    [[ "$1" =~ ^[A-Z][a-zA-Z0-9]+$ ]]
+}
+
+# Convert PascalCase to kebab-case (for file names)
+pascal_to_kebab() {
+    echo "$1" | sed -E 's/([A-Z])/-\L\1/g' | sed 's/^-//'
+}
+
+# Log error with code and resolution
+log_error() {
+    local code="$1"
+    local message="$2"
+    local resolution="$3"
+    echo "[ERROR] $code: $message"
+    [[ -n "$resolution" ]] && echo "Resolution: $resolution"
 } 
