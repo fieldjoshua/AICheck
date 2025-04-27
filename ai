@@ -12,7 +12,7 @@ source .aicheck/scripts/action.sh
 source .aicheck/scripts/security_utils.sh
 
 usage() {
-    echo "Usage: ./ai {start|end|create|switch|status|delete|update-status|update-progress} [action_name] [value]"
+    echo "Usage: ./ai {start|end|create|switch|status|delete|update-status|update-progress|catchup} [action_name] [value]"
     exit 1
 }
 
@@ -211,6 +211,70 @@ You can proceed with implementation if your work complies with RULES.md and fall
         else
             echo "$check_prompt"
             echo "Please copy the above prompt manually"
+        fi
+        ;;
+    catchup)
+        # Generate comprehensive project overview for new editors
+        echo "=== AICheck Project Overview ==="
+        echo "This overview is designed for editors who are new to the project."
+        
+        # Get current action and session
+        current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+        current_session=$(cat .aicheck/current_session 2>/dev/null || echo "None")
+        
+        # Create catchup overview
+        catchup_overview="# AICheck Project Overview
+
+## System Structure
+AICheck is a system for managing AI-assisted development that ensures compliance with project rules.
+The system works through a structured approach to actions, documentation, and workflows.
+
+## Key Concepts
+- **RULES.md**: The controlling document that defines all project rules and requirements
+- **Actions**: Individual sub-objectives that contribute to program functionality
+- **ActiveAction**: The single action currently being worked on (currently: $current_action)
+- **Action Index**: List of all actions and their status (.aicheck/docs/actions_index.md)
+
+## Directory Structure
+- **.aicheck/actions/**: Contains all action directories with their plans and supporting docs
+- **.aicheck/docs/**: Project documentation including the actions index
+- **.aicheck/current_action**: Tracks which action is currently active
+- **.aicheck/current_session**: Tracks the current development session
+
+## Workflow Overview
+1. Start a session with \`./ai start\`
+2. Create or switch to an action with \`./ai new ActionName\` or \`./ai switch ActionName\`
+3. Update status (\`./ai update-status\`) and progress (\`./ai update-progress\`) regularly
+4. End session with \`./ai end\` to generate context
+
+## AI Editor Permissions
+AI editors may implement without approval:
+- Code implementing the ActiveAction plan
+- Documentation updates for ActiveAction
+- Bug fixes and tests within ActiveAction scope
+- Refactoring within ActiveAction scope
+
+The following ALWAYS require human manager approval:
+- Changing the ActiveAction
+- Creating a new Action
+- Making substantive changes to any Action
+- Modifying any Action Plan
+- Creating or modifying Templates
+
+## Current State
+- ActiveAction: $current_action
+- Current Session: $current_session"
+        
+        # Output the overview
+        echo "$catchup_overview"
+        
+        # Copy to clipboard if available
+        if command -v pbcopy &> /dev/null; then
+            echo "$catchup_overview" | pbcopy
+            echo "Overview copied to clipboard"
+        elif command -v xclip &> /dev/null; then
+            echo "$catchup_overview" | xclip -selection clipboard
+            echo "Overview copied to clipboard"
         fi
         ;;
     *)

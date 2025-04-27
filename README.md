@@ -103,6 +103,7 @@ AICheck is a modular, security-focused shell-based framework for managing, testi
   ./ai prompt                     # Generate a context prompt (purpose, value, steps)
   ./ai end                        # End session (auto-generates chat context, copies to clipboard, opens in editor)
   ./ai audit                      # Run compliance and audit checks
+  ./ai catchup                    # Generate project overview for new editors
   ```
 
 - **Run the full test suite:**
