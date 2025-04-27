@@ -12,7 +12,7 @@ source .aicheck/scripts/action.sh
 source .aicheck/scripts/security_utils.sh
 
 usage() {
-    echo "Usage: ./ai {start|end|create|switch|status|delete|update-status|update-progress|catchup} [action_name] [value]"
+    echo "Usage: ./ai {start|end|create|switch|status|delete|update-status|update-progress|catchup|update} [action_name] [value]"
     exit 1
 }
 
@@ -276,6 +276,41 @@ The following ALWAYS require human manager approval:
             echo "$catchup_overview" | xclip -selection clipboard
             echo "Overview copied to clipboard"
         fi
+        ;;
+    update)
+        # Update AICheck to the latest version
+        echo "=== Updating AICheck to the latest version ==="
+        
+        # Check if we're in a git repository
+        if [ ! -d ".git" ]; then
+            echo "Error: Not in a git repository. Update requires a git repository."
+            echo "If you installed AICheck using the installer, please reinstall using:"
+            echo "curl -s https://raw.githubusercontent.com/fieldjoshua/AICheck/main/aicheck.sh | bash"
+            exit 1
+        fi
+        
+        # Store current branch
+        current_branch=$(git rev-parse --abbrev-ref HEAD)
+        
+        # Stash any changes
+        echo "Stashing any local changes..."
+        git stash
+        
+        # Pull the latest version
+        echo "Pulling the latest version..."
+        git pull origin $current_branch
+        
+        # Apply stashed changes if any
+        echo "Applying stashed changes if any..."
+        git stash pop 2>/dev/null || true
+        
+        # Make scripts executable
+        echo "Making scripts executable..."
+        chmod +x .aicheck/scripts/*.sh .aicheck/hooks/* ai
+        
+        echo "Update complete. AICheck has been updated to the latest version."
+        echo "New features:"
+        echo "- catchup: Generate project overview for new editors (./ai catchup)"
         ;;
     *)
         usage

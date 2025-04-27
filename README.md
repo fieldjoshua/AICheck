@@ -104,6 +104,7 @@ AICheck is a modular, security-focused shell-based framework for managing, testi
   ./ai end                        # End session (auto-generates chat context, copies to clipboard, opens in editor)
   ./ai audit                      # Run compliance and audit checks
   ./ai catchup                    # Generate project overview for new editors
+  ./ai update                     # Update AICheck to the latest version
   ```
 
 - **Run the full test suite:**
