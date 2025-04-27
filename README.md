@@ -53,6 +53,7 @@ AICheck is a modular, security-focused shell-based framework for managing, testi
 - **Unified command interface via `ai` script**
 - Automated session summary and chat context generation
 - Action plan compliance checks
+- Documentation detection hook for automatically tracking action-specific documentation
 
 ## Installation & Setup
 

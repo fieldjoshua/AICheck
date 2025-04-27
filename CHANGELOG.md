@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Test infrastructure
 - Installation guide
 - Contributing guidelines
+- Documentation detection hook to automatically track action-specific documentation
+- Comprehensive tests for documentation detection hook
 
 ### Changed
 
