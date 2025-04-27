@@ -113,6 +113,7 @@ AICheck is a modular, security-focused shell-based framework for managing, testi
   ./ai docs                       # Manage and view documentation index
   ./ai add-doc                    # Add supporting documentation to an action
   ./ai create-doc                 # Create a new documentation file
+  ./ai create-code                # Create a new code file in the correct location
   ```
 
 - **Run the full test suite:**
@@ -141,6 +142,8 @@ AICheck is a modular, security-focused shell-based framework for managing, testi
 - **Session end** auto-generates a summary context for chat, copies it to clipboard, and opens it in your editor.
 - **Compliance checks** ensure all plans and documentation meet project rules.
 - **Automated tests** cover all workflows, security, and compliance features.
+- **Code organization** ensures code files are placed in the correct action directories with guidance.
+- **Documentation management** simplifies tracking and finding documentation across actions.
 
 ## Contributing
 Contributions are welcome! Please see `CONTRIBUTING.md` for guidelines.

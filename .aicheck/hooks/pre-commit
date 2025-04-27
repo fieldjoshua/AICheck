@@ -57,5 +57,12 @@ else
     exit 1
 fi
 
+# Run code location check
+if [ -f "$SCRIPT_DIR/code_location_check.sh" ]; then
+    check_permissions "$SCRIPT_DIR/code_location_check.sh"
+    echo "Checking code file locations..."
+    bash "$SCRIPT_DIR/code_location_check.sh"
+fi
+
 echo -e "${GREEN}All pre-commit checks passed${NC}"
 exit 0 
