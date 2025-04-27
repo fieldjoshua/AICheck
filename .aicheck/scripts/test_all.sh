@@ -257,6 +257,102 @@ test_prompt_generation() {
     ((TOTAL_TESTS++))
 }
 
+# Function to test documentation detection
+test_documentation_detection() {
+    echo -e "\n${YELLOW}Testing Documentation Detection...${NC}"
+    
+    # Test 1: Create a test action
+    local test_action="DocDetectionTestAction"
+    .aicheck/scripts/action.sh create "$test_action"
+    
+    # Test 2: Create a test document
+    mkdir -p ".aicheck/actions/$test_action/supporting_docs"
+    echo "# Test Document for Detection" > ".aicheck/actions/$test_action/supporting_docs/test-detection.md"
+    
+    # Test 3: Stage the file
+    git add ".aicheck/actions/$test_action/supporting_docs/test-detection.md"
+    
+    # Test 4: Run the detection hook with 'yes' input (add to index)
+    # Save the original index
+    if [ -f ".aicheck/docs/documentation_index.md" ]; then
+        cp .aicheck/docs/documentation_index.md .aicheck/docs/documentation_index.md.bak
+    fi
+    
+    # Run hook with 'yes' input and a description
+    (echo "y"; echo "Test document description") | .aicheck/scripts/doc_detection_hook.sh > /dev/null
+    
+    # Check if document was detected and added to index
+    if [ -f ".aicheck/docs/documentation_index.md" ] && 
+       grep -q "DocDetectionTestAction" ".aicheck/docs/documentation_index.md" && 
+       grep -q "test-detection.md" ".aicheck/docs/documentation_index.md"; then
+        echo -e "${GREEN}✓ Document detection and addition to index test passed${NC}"
+        ((PASSED_TESTS++))
+    else
+        echo -e "${RED}✗ Document detection and addition to index test failed${NC}"
+        ((FAILED_TESTS++))
+    fi
+    
+    # Reset for next test
+    git reset ".aicheck/actions/$test_action/supporting_docs/test-detection.md" > /dev/null
+    if [ -f ".aicheck/docs/documentation_index.md.bak" ]; then
+        mv .aicheck/docs/documentation_index.md.bak .aicheck/docs/documentation_index.md
+    fi
+    
+    # Test 5: Create a second action
+    local test_action2="DocDetectionTestAction2"
+    .aicheck/scripts/action.sh create "$test_action2"
+    
+    # Test 6: Create another document
+    mkdir -p ".aicheck/actions/$test_action2/supporting_docs"
+    echo "# Test Document 2" > ".aicheck/actions/$test_action2/supporting_docs/test-detection-2.md"
+    
+    # Test 7: Stage the second file
+    git add ".aicheck/actions/$test_action2/supporting_docs/test-detection-2.md"
+    
+    # Test 8: Run the detection hook with 'no' input (reject adding to index)
+    # Save the original index
+    if [ -f ".aicheck/docs/documentation_index.md" ]; then
+        cp .aicheck/docs/documentation_index.md .aicheck/docs/documentation_index.md.bak
+    fi
+    
+    # Run hook with 'no' input
+    echo "n" | .aicheck/scripts/doc_detection_hook.sh > /dev/null
+    
+    # Check if document was detected but NOT added to index
+    if [ -f ".aicheck/docs/documentation_index.md" ] && 
+       ! grep -q "test-detection-2.md" ".aicheck/docs/documentation_index.md"; then
+        echo -e "${GREEN}✓ Document detection rejection test passed${NC}"
+        ((PASSED_TESTS++))
+    else
+        echo -e "${RED}✗ Document detection rejection test failed${NC}"
+        ((FAILED_TESTS++))
+    fi
+    
+    # Test 9: Test manual document addition to index
+    ./ai docs add "$test_action2" "Test Document 2" ".aicheck/actions/$test_action2/supporting_docs/test-detection-2.md" "Manually added test document" > /dev/null
+    
+    # Check if document was added to index manually
+    if [ -f ".aicheck/docs/documentation_index.md" ] && 
+       grep -q "$test_action2" ".aicheck/docs/documentation_index.md" && 
+       grep -q "test-detection-2.md" ".aicheck/docs/documentation_index.md"; then
+        echo -e "${GREEN}✓ Manual document addition test passed${NC}"
+        ((PASSED_TESTS++))
+    else
+        echo -e "${RED}✗ Manual document addition test failed${NC}"
+        ((FAILED_TESTS++))
+    fi
+    
+    # Cleanup
+    git reset ".aicheck/actions/$test_action2/supporting_docs/test-detection-2.md" > /dev/null
+    if [ -f ".aicheck/docs/documentation_index.md.bak" ]; then
+        mv .aicheck/docs/documentation_index.md.bak .aicheck/docs/documentation_index.md
+    fi
+    .aicheck/scripts/action.sh delete "$test_action"
+    .aicheck/scripts/action.sh delete "$test_action2"
+    
+    ((TOTAL_TESTS+=3))
+}
+
 # Run all test suites
 echo "Starting AICheck test suite..."
 echo "================================"
@@ -288,6 +384,9 @@ test_compliance_check
 # Run prompt generation test
 test_prompt_generation
 
+# Run individual tests
+test_documentation_detection
+
 # Generate test report
 REPORT_FILE=".aicheck/test_reports/test_report_$(date +%Y%m%d_%H%M%S).txt"
 {
@@ -311,6 +410,7 @@ REPORT_FILE=".aicheck/test_reports/test_report_$(date +%Y%m%d_%H%M%S).txt"
     echo "- Session End Automation Tests"
     echo "- Compliance Check Tests"
     echo "- Prompt Generation Tests"
+    echo "- Documentation Detection Tests"
     echo ""
     echo "Detailed Results:"
     echo "----------------"

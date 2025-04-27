@@ -217,6 +217,61 @@ git commit -m "Initial commit"
 # - Documentation is readable
 ```
 
+### 6.3 Documentation Detection Hook
+
+```bash
+# Test documentation detection hook
+# Create a new action
+./ai new TestDocAction
+
+# Create a new markdown file in the supporting_docs directory
+mkdir -p .aicheck/actions/TestDocAction/supporting_docs
+echo "# Test Document" > .aicheck/actions/TestDocAction/supporting_docs/test-document.md
+
+# Stage the new file
+git add .aicheck/actions/TestDocAction/supporting_docs/test-document.md
+
+# Attempt to commit (should trigger doc_detection_hook.sh)
+git commit -m "test: add test document"
+
+# Verify:
+# - Hook detects the new document
+# - Prompts to add to documentation index
+# - Document is added to index when 'y' is selected
+# - Check documentation_index.md for the new entry
+# - Index is included in the commit
+
+# Test rejection scenario
+./ai new TestDocAction2
+
+# Create another markdown file
+mkdir -p .aicheck/actions/TestDocAction2/supporting_docs
+echo "# Test Document 2" > .aicheck/actions/TestDocAction2/supporting_docs/test-document-2.md
+
+# Stage the new file
+git add .aicheck/actions/TestDocAction2/supporting_docs/test-document-2.md
+
+# Attempt to commit (should trigger doc_detection_hook.sh again)
+# Select 'n' when prompted
+git commit -m "test: add second test document"
+
+# Verify:
+# - Hook detects the new document
+# - Prompts to add to documentation index
+# - Document is NOT added to index when 'n' is selected
+# - Check documentation_index.md to confirm no new entry
+# - Document can still be added manually later using './ai docs add'
+
+# Test manual document addition
+# Add the document manually to the index
+./ai docs add "TestDocAction2" "Test Document 2" ".aicheck/actions/TestDocAction2/supporting_docs/test-document-2.md" "Manually added test document"
+
+# Verify:
+# - Document is properly added to the index
+# - New entry appears in documentation_index.md
+# - Correct formatting of the entry in the index
+```
+
 ## 7. Performance Tests
 
 ### 7.1 Large Scale
