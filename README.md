@@ -1,5 +1,9 @@
 # AICheck
 
+<p align="center">
+  <img src=".aicheck/assets/AICheck.png" alt="AICheck Logo" width="250">
+</p>
+
 ## Quick Start
 
 1. **Clone and enter the repo:**

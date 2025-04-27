@@ -1,5 +1,9 @@
 # Documentation Index
 
+<p align="center">
+  <img src="../assets/AICheck.png" alt="AICheck Logo" width="250">
+</p>
+
 This file provides a centralized index of all documentation across AICheck actions to improve discoverability.
 
 ## Action Documentation
