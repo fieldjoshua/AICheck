@@ -12,7 +12,7 @@ source .aicheck/scripts/action.sh
 source .aicheck/scripts/security_utils.sh
 
 usage() {
-    echo "Usage: ./ai {start|end|create|switch|status|delete|update-status|update-progress|catchup|update|list|view|summary|version|help|docs} [action_name] [value]"
+    echo "Usage: ./ai {start|end|create|switch|status|delete|update-status|update-progress|catchup|update|list|view|summary|version|help|docs|add-doc|create-doc} [action_name] [value]"
     exit 1
 }
 
@@ -476,6 +476,8 @@ The following ALWAYS require human manager approval:
         echo "  version              - Show AICheck version information"
         echo "  help                 - Show this help message"
         echo "  docs                 - Manage and view documentation index"
+        echo "  add-doc              - Add supporting documentation to an action"
+        echo "  create-doc           - Create a new documentation file"
         ;;
     docs)
         # Documentation management and viewing
@@ -520,6 +522,55 @@ EOC
                 if [ -z "$action_name" ] || [ -z "$doc_name" ] || [ -z "$doc_path" ] || [ -z "$doc_desc" ]; then
                     echo "Usage: ./ai docs add <ActionName> \"Document Name\" \"path/to/document\" \"Brief description\""
                     exit 1
+                fi
+                
+                # Check if the document is in the correct location
+                if [[ "$doc_path" == ".aicheck/docs/"* && "$doc_path" != ".aicheck/docs/actions_index.md" && "$doc_path" != ".aicheck/docs/documentation_index.md" ]]; then
+                    echo "⚠️ DOCUMENTATION LOCATION WARNING ⚠️"
+                    echo "According to RULES.md, supporting documentation should be in the action directory."
+                    echo "The correct location would be: .aicheck/actions/$action_name/supporting_docs/"
+                    echo ""
+                    echo "Would you like to:"
+                    echo "1) Move the document to the correct location"
+                    echo "2) Continue adding it to the index in its current location"
+                    echo "3) Cancel"
+                    read -r choice
+                    
+                    case "$choice" in
+                        1)
+                            # Make sure the action exists
+                            if [ ! -d ".aicheck/actions/$action_name" ]; then
+                                echo "Error: Action '$action_name' does not exist."
+                                echo "Create it first with: ./ai new $action_name"
+                                exit 1
+                            fi
+                            
+                            # Create supporting_docs directory if it doesn't exist
+                            mkdir -p ".aicheck/actions/$action_name/supporting_docs"
+                            
+                            # Get the filename
+                            filename=$(basename "$doc_path")
+                            new_path=".aicheck/actions/$action_name/supporting_docs/$filename"
+                            
+                            # Move the file
+                            mv "$doc_path" "$new_path"
+                            echo "Moved document to: $new_path"
+                            
+                            # Update the doc_path variable
+                            doc_path="$new_path"
+                            ;;
+                        2)
+                            echo "Continuing with current location..."
+                            ;;
+                        3)
+                            echo "Operation cancelled."
+                            exit 0
+                            ;;
+                        *)
+                            echo "Invalid choice. Operation cancelled."
+                            exit 1
+                            ;;
+                    esac
                 fi
                 
                 # Check if the document exists
@@ -575,6 +626,261 @@ $new_line" "$docs_index"
                 echo "  ./ai docs find <search_term> - Search the documentation index"
                 ;;
         esac
+        ;;
+    add-doc)
+        # Add supporting documentation to an action
+        action_name="$1"
+        doc_title="$2"
+        doc_file="$3"
+        
+        # Verify required parameters
+        if [ -z "$action_name" ] || [ -z "$doc_title" ]; then
+            echo "Usage: ./ai add-doc <ActionName> \"Document Title\" [file_path]"
+            echo ""
+            echo "If file_path is not provided, a new Markdown file will be created."
+            exit 1
+        fi
+        
+        # Check if action exists
+        action_dir=".aicheck/actions/$action_name"
+        if [ ! -d "$action_dir" ]; then
+            echo "Error: Action '$action_name' does not exist."
+            echo "Create it first with: ./ai new $action_name"
+            exit 1
+        fi
+        
+        # Create supporting_docs directory if it doesn't exist
+        docs_dir="$action_dir/supporting_docs"
+        mkdir -p "$docs_dir"
+        
+        # Generate file name from title if not provided
+        if [ -z "$doc_file" ]; then
+            # Convert title to kebab-case for filename
+            doc_filename=$(echo "$doc_title" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+            doc_file="$docs_dir/$doc_filename.md"
+        else
+            # Check if file exists outside the supporting_docs directory
+            if [ -f "$doc_file" ] && [[ "$doc_file" != "$docs_dir"* ]]; then
+                # Copy file to supporting_docs directory
+                filename=$(basename "$doc_file")
+                cp "$doc_file" "$docs_dir/$filename"
+                doc_file="$docs_dir/$filename"
+                echo "Copied file to: $doc_file"
+            elif [[ "$doc_file" != "$docs_dir"* ]]; then
+                # Ensure file is in supporting_docs directory
+                filename=$(basename "$doc_file")
+                doc_file="$docs_dir/$filename"
+            fi
+        fi
+        
+        # Create the document if it doesn't exist
+        if [ ! -f "$doc_file" ]; then
+            echo "Creating new document: $doc_file"
+            cat > "$doc_file" << EOC
+# $doc_title
+
+## Overview
+[Add document overview here]
+
+## Details
+[Add details here]
+
+## References
+- [Reference 1](link-to-reference)
+EOC
+            echo "Created document template at: $doc_file"
+        else
+            echo "Using existing document: $doc_file"
+        fi
+        
+        # Ask if the editor wants to add it to the documentation index
+        echo ""
+        echo "Do you want to add this document to the documentation index for future reference? (y/n)"
+        read -r add_to_index
+        
+        if [ "$add_to_index" = "y" ]; then
+            # Ask for document description
+            echo "Enter a brief description of this document:"
+            read -r doc_desc
+            
+            # Format the relative path from docs directory to the document
+            rel_path=$(realpath --relative-to=".aicheck/docs" "$doc_file")
+            
+            # Add to documentation index
+            ./ai docs add "$action_name" "$doc_title" "$doc_file" "${doc_desc:-"Supporting documentation for $action_name"}"
+            echo "Document added to documentation index."
+        else
+            echo "Document not added to documentation index."
+        fi
+        
+        # Suggest opening the document in an editor
+        echo ""
+        echo "Document ready at: $doc_file"
+        echo "You can open it with your text editor."
+        
+        # Try to open the document with the default editor if available
+        if command -v open &> /dev/null; then
+            echo "Opening document..."
+            open "$doc_file"
+        elif command -v xdg-open &> /dev/null; then
+            echo "Opening document..."
+            xdg-open "$doc_file"
+        fi
+        ;;
+    create-doc)
+        # Create a new documentation file
+        doc_path="$1"
+        doc_title="$2"
+        
+        if [ -z "$doc_path" ]; then
+            echo "Usage: ./ai create-doc <file_path> [\"Document Title\"]"
+            echo ""
+            echo "Example: ./ai create-doc .aicheck/docs/guide.md \"User Guide\""
+            exit 1
+        fi
+        
+        # Set default title if not provided
+        if [ -z "$doc_title" ]; then
+            # Extract filename without extension
+            doc_title=$(basename "$doc_path" | sed 's/\.[^.]*$//')
+            # Convert kebab-case to Title Case
+            doc_title=$(echo "$doc_title" | sed -E 's/(^|-)([a-z])/\U\2/g' | sed 's/-/ /g')
+        fi
+        
+        # Check if the file is being created in the docs directory (not in an action directory)
+        if [[ "$doc_path" == ".aicheck/docs/"* && "$doc_path" != ".aicheck/docs/actions_index.md" && "$doc_path" != ".aicheck/docs/documentation_index.md" ]]; then
+            # This is a potential misplacement - suggest putting it in an action directory
+            echo "⚠️ DOCUMENTATION LOCATION WARNING ⚠️"
+            echo "According to RULES.md, supporting documentation should be in an action directory."
+            echo ""
+            
+            # Get current action
+            current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
+            if [ "$current_action" != "None" ]; then
+                echo "Current action is: $current_action"
+            fi
+            
+            # List available actions
+            echo "Available actions:"
+            ls -1 .aicheck/actions 2>/dev/null || echo "No actions found."
+            echo ""
+            
+            echo "Would you like to:"
+            echo "1) Move this document to an action directory"
+            echo "2) Continue creating it in the current location"
+            echo "3) Cancel"
+            read -r choice
+            
+            if [ "$choice" = "1" ]; then
+                echo "Which action should this document belong to?"
+                if [ "$current_action" != "None" ]; then
+                    echo "(Press Enter to use current action: $current_action)"
+                fi
+                read -r action_name
+                
+                # Use current action if none specified
+                if [ -z "$action_name" ] && [ "$current_action" != "None" ]; then
+                    action_name="$current_action"
+                fi
+                
+                if [ -z "$action_name" ]; then
+                    echo "Error: No action specified."
+                    exit 1
+                fi
+                
+                # Check if action exists
+                if [ ! -d ".aicheck/actions/$action_name" ]; then
+                    echo "Error: Action '$action_name' does not exist."
+                    echo "Create it first with: ./ai new $action_name"
+                    exit 1
+                fi
+                
+                # Get filename from original path
+                filename=$(basename "$doc_path")
+                
+                # Create supporting_docs directory if it doesn't exist
+                mkdir -p ".aicheck/actions/$action_name/supporting_docs"
+                
+                # Set new path
+                doc_path=".aicheck/actions/$action_name/supporting_docs/$filename"
+                echo "Document will be created at: $doc_path"
+            elif [ "$choice" = "3" ]; then
+                echo "Operation cancelled."
+                exit 0
+            else
+                echo "Continuing with current location..."
+            fi
+        fi
+        
+        # Create directory if it doesn't exist
+        dir_path=$(dirname "$doc_path")
+        mkdir -p "$dir_path"
+        
+        # Check if the file already exists
+        if [ -f "$doc_path" ]; then
+            echo "Warning: File already exists. Overwrite? (y/n)"
+            read -r overwrite
+            if [ "$overwrite" != "y" ]; then
+                echo "Operation cancelled."
+                exit 0
+            fi
+        fi
+        
+        # Create the document
+        echo "Creating document: $doc_path"
+        cat > "$doc_path" << EOC
+# $doc_title
+
+## Overview
+[Add document overview here]
+
+## Details
+[Add details here]
+
+## References
+- [Reference 1](link-to-reference)
+EOC
+        
+        echo "Document created at: $doc_path"
+        
+        # Ask if the editor wants to add it to the documentation index
+        echo ""
+        echo "Do you want to add this document to the documentation index for future reference? (y/n)"
+        read -r add_to_index
+        
+        if [ "$add_to_index" = "y" ]; then
+            # Try to determine which action this belongs to
+            action_name="Unknown"
+            
+            # Check if the document is in an action directory
+            if [[ "$doc_path" == ".aicheck/actions/"* ]]; then
+                # Extract action name from path
+                action_name=$(echo "$doc_path" | sed -n 's|.aicheck/actions/\([^/]*\)/.*|\1|p')
+            else
+                # Ask for action name
+                echo "Which action does this document belong to?"
+                read -r action_name
+                if [ -z "$action_name" ]; then
+                    action_name="General"
+                fi
+            fi
+            
+            # Ask for document description
+            echo "Enter a brief description of this document:"
+            read -r doc_desc
+            
+            # Add to documentation index
+            ./ai docs add "$action_name" "$doc_title" "$doc_path" "${doc_desc:-"Documentation for $action_name"}"
+        fi
+        
+        # Try to open the document with the default editor if available
+        if command -v open &> /dev/null; then
+            echo "Opening document..."
+            open "$doc_path"
+        elif command -v xdg-open &> /dev/null; then
+            echo "Opening document..."
+            xdg-open "$doc_path"
+        fi
         ;;
     *)
         usage

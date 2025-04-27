@@ -111,6 +111,8 @@ AICheck is a modular, security-focused shell-based framework for managing, testi
   ./ai version                    # Show AICheck version information
   ./ai help                       # Show detailed help for all commands
   ./ai docs                       # Manage and view documentation index
+  ./ai add-doc                    # Add supporting documentation to an action
+  ./ai create-doc                 # Create a new documentation file
   ```
 
 - **Run the full test suite:**
