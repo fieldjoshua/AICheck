@@ -167,6 +167,22 @@ test_docs_location_guidance() {
         "rm -f .aicheck/docs/misplaced_test.md"
 }
 
+# Test documentation detection hook
+test_doc_detection_hook() {
+    # Create a test document in the action directory
+    mkdir -p ".aicheck/actions/$TEST_ACTION/supporting_docs" 2>/dev/null || true
+    echo "# Test Auto-Detected Document" > ".aicheck/actions/$TEST_ACTION/supporting_docs/auto-detected-doc.md"
+    echo "This document should be detected by the doc detection hook." >> ".aicheck/actions/$TEST_ACTION/supporting_docs/auto-detected-doc.md"
+    
+    # Stage the file
+    git add ".aicheck/actions/$TEST_ACTION/supporting_docs/auto-detected-doc.md"
+    
+    run_test "Documentation detection" \
+        "bash .aicheck/scripts/doc_detection_hook.sh < <(echo -e 'n')" \
+        0 \
+        "git reset .aicheck/actions/$TEST_ACTION/supporting_docs/auto-detected-doc.md && rm -f .aicheck/actions/$TEST_ACTION/supporting_docs/auto-detected-doc.md"
+}
+
 # Run all tests
 run_all_tests() {
     echo -e "${YELLOW}=== Running Code and Documentation Location Tests ===${NC}"
@@ -175,6 +191,9 @@ run_all_tests() {
     
     test_create_code_correct
     test_create_doc_correct
+    
+    # Test detection hook, commented by default as it needs git operations
+    # test_doc_detection_hook
     
     # Note: These tests might fail in automated environments since they need user input
     # Comment them out if running in CI/CD pipeline

@@ -64,5 +64,12 @@ if [ -f "$SCRIPT_DIR/code_location_check.sh" ]; then
     bash "$SCRIPT_DIR/code_location_check.sh"
 fi
 
+# Run documentation detection hook
+if [ -f "$SCRIPT_DIR/doc_detection_hook.sh" ]; then
+    check_permissions "$SCRIPT_DIR/doc_detection_hook.sh"
+    echo "Checking for new documentation files..."
+    bash "$SCRIPT_DIR/doc_detection_hook.sh"
+fi
+
 echo -e "${GREEN}All pre-commit checks passed${NC}"
 exit 0 
