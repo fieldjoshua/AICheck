@@ -236,10 +236,12 @@ git commit -m "test: add test document"
 
 # Verify:
 # - Hook detects the new document
-# - Prompts to add to documentation index
-# - Document is added to index when 'y' is selected
+# - Displays the mandatory documentation alert
+# - Creates a backup copy in .aicheck/docs/backup
+# - Prompts to add to documentation index (indexing is optional)
+# - Document is added to index when 'y' is selected using default description
 # - Check documentation_index.md for the new entry
-# - Index is included in the commit
+# - Both backup file and index are included in the commit
 
 # Test rejection scenario
 ./ai new TestDocAction2
@@ -257,9 +259,12 @@ git commit -m "test: add second test document"
 
 # Verify:
 # - Hook detects the new document
+# - Displays the mandatory documentation alert
+# - Creates a backup copy in .aicheck/docs/backup
 # - Prompts to add to documentation index
 # - Document is NOT added to index when 'n' is selected
-# - Check documentation_index.md to confirm no new entry
+# - Check backup directory to confirm document was backed up
+# - Backup file is included in the commit
 # - Document can still be added manually later using './ai docs add'
 
 # Test manual document addition
@@ -270,6 +275,46 @@ git commit -m "test: add second test document"
 # - Document is properly added to the index
 # - New entry appears in documentation_index.md
 # - Correct formatting of the entry in the index
+
+# Test bulk documentation scanning
+# Run the detection hook with the scan-all option
+.aicheck/scripts/doc_detection_hook.sh --scan-all
+
+# Verify:
+# - All documentation files are detected
+# - All files are backed up to .aicheck/docs/backup
+# - Files not in the index are identified
+# - Option to add all detected files to the index
+# - Default descriptions are used without prompting
+```
+
+### 6.4 Documentation Backup System
+
+```bash
+# Test documentation backup system
+# Create a new markdown file
+mkdir -p .aicheck/actions/BackupTestAction/supporting_docs
+echo "# Backup Test Document" > .aicheck/actions/BackupTestAction/supporting_docs/backup-test.md
+
+# Stage and commit
+git add .aicheck/actions/BackupTestAction/supporting_docs/backup-test.md
+git commit -m "test: add document for backup testing"
+
+# Verify backup was created
+ls -la .aicheck/docs/backup/BackupTestAction/
+
+# Test backup integrity by modifying the original file
+echo "Modified content" > .aicheck/actions/BackupTestAction/supporting_docs/backup-test.md
+
+# Verify the backup remains unchanged
+cat .aicheck/docs/backup/BackupTestAction/backup-test.md
+
+# Test backup during scan-all operation
+.aicheck/scripts/doc_detection_hook.sh --scan-all
+
+# Verify all documentation is backed up
+find .aicheck/docs/backup -type f | wc -l
+find .aicheck/actions -path "*/supporting_docs/*.md" -type f | wc -l
 ```
 
 ## 7. Performance Tests
