@@ -30,7 +30,16 @@ check_permissions() {
 
 # Secure logging function
 log_security_event() {
-    # TODO: Implement real event logging
+    local level="$1"
+    local message="$2"
+    local logfile=".aicheck/security.log"
+    # Create log file if it doesn't exist, with 600 permissions
+    if [ ! -f "$logfile" ]; then
+        touch "$logfile"
+        chmod 600 "$logfile"
+    fi
+    echo "[$(date +'%Y-%m-%d %H:%M:%S')] [$level] $message" >> "$logfile"
+    chmod 600 "$logfile"
     return 0
 }
 
