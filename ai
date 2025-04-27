@@ -12,7 +12,7 @@ source .aicheck/scripts/action.sh
 source .aicheck/scripts/security_utils.sh
 
 usage() {
-    echo "Usage: ./ai {start|end|create|switch|status|delete|update-status|update-progress|catchup|update|list|view|summary|version|help} [action_name] [value]"
+    echo "Usage: ./ai {start|end|create|switch|status|delete|update-status|update-progress|catchup|update|list|view|summary|version|help|docs} [action_name] [value]"
     exit 1
 }
 
@@ -475,6 +475,106 @@ The following ALWAYS require human manager approval:
         echo "  audit                - Run compliance and audit checks"
         echo "  version              - Show AICheck version information"
         echo "  help                 - Show this help message"
+        echo "  docs                 - Manage and view documentation index"
+        ;;
+    docs)
+        # Documentation management and viewing
+        echo "=== AICheck Documentation Index ==="
+        
+        docs_index=".aicheck/docs/documentation_index.md"
+        
+        if [ ! -f "$docs_index" ]; then
+            echo "Documentation index not found. Creating it now..."
+            mkdir -p ".aicheck/docs"
+            cat > "$docs_index" << EOC
+# Documentation Index
+
+This file provides a centralized index of all documentation across AICheck actions to improve discoverability.
+
+## Action Documentation
+
+| Action | Document | Description | Path |
+|--------|----------|-------------|------|
+| *Example* | Example Doc | Example description | [Path to document](path/to/document) |
+
+## How to Use This Index
+
+1. **When creating new documentation**: 
+   - Save the document in the appropriate action directory (\`/actions/[ACTION]/supporting_docs/\`)
+   - Add an entry to this index with a relative link
+   
+2. **Finding documentation**:
+   - Search this index for keywords
+   - Follow the provided links to the actual documentation
+EOC
+        fi
+        
+        subcommand="$1"
+        action_name="$2"
+        doc_name="$3"
+        doc_path="$4"
+        doc_desc="$5"
+        
+        case "$subcommand" in
+            "add")
+                if [ -z "$action_name" ] || [ -z "$doc_name" ] || [ -z "$doc_path" ] || [ -z "$doc_desc" ]; then
+                    echo "Usage: ./ai docs add <ActionName> \"Document Name\" \"path/to/document\" \"Brief description\""
+                    exit 1
+                fi
+                
+                # Check if the document exists
+                if [ ! -f "$doc_path" ]; then
+                    echo "Warning: Document at '$doc_path' does not exist."
+                    echo "Do you want to continue anyway? (y/n)"
+                    read -r response
+                    if [ "$response" != "y" ]; then
+                        echo "Aborted adding document to index."
+                        exit 1
+                    fi
+                fi
+                
+                # Add entry to the index file
+                new_line="| *$action_name* | $doc_name | $doc_desc | [$doc_path]($doc_path) |"
+                if grep -q "| Action | Document |" "$docs_index"; then
+                    # Find where to insert the line (after the header row and separator)
+                    line_num=$(grep -n "| Action | Document |" "$docs_index" | cut -d: -f1)
+                    line_num=$((line_num + 2))
+                    sed -i '' "${line_num}i\\
+$new_line" "$docs_index"
+                else
+                    echo "Error: Documentation index file is malformed."
+                    exit 1
+                fi
+                
+                echo "Added document '$doc_name' to documentation index."
+                ;;
+            "list")
+                # View the documentation index
+                if [ -f "$docs_index" ]; then
+                    cat "$docs_index"
+                else
+                    echo "Documentation index not found."
+                    exit 1
+                fi
+                ;;
+            "find")
+                if [ -z "$action_name" ]; then
+                    echo "Usage: ./ai docs find <search_term>"
+                    exit 1
+                fi
+                
+                echo "Searching for '$action_name' in documentation index..."
+                grep -i "$action_name" "$docs_index" || echo "No matches found."
+                ;;
+            *)
+                echo "Documentation Index: $docs_index"
+                echo ""
+                echo "Usage:"
+                echo "  ./ai docs list               - View all documentation"
+                echo "  ./ai docs add <ActionName> \"Doc Name\" \"path/to/doc\" \"Description\" - Add a document to the index"
+                echo "  ./ai docs find <search_term> - Search the documentation index"
+                ;;
+        esac
         ;;
     *)
         usage
