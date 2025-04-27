@@ -189,6 +189,74 @@ test_error_handling() {
     ((TOTAL_TESTS+=3))
 }
 
+# Test session start automation
+
+test_session_start_automation() {
+    echo -e "\n${YELLOW}Testing Session Start Automation...${NC}"
+    # Remove project objective if exists
+    rm -f .aicheck/docs/project_objective.md
+    # Start session (simulate user input for project objective)
+    (echo "Test Project Objective" | .aicheck/scripts/session.sh start_session)
+    if [ -f .aicheck/docs/project_objective.md ]; then
+        echo -e "${GREEN}✓ Project objective prompt and file creation test passed${NC}"
+        ((PASSED_TESTS++))
+    else
+        echo -e "${RED}✗ Project objective prompt and file creation test failed${NC}"
+        ((FAILED_TESTS++))
+    fi
+    ((TOTAL_TESTS++))
+}
+
+# Test session end automation
+
+test_session_end_automation() {
+    echo -e "\n${YELLOW}Testing Session End Automation...${NC}"
+    # Start and end a session to trigger summary creation
+    .aicheck/scripts/session.sh start_session > /dev/null
+    .aicheck/scripts/session.sh end_session > /dev/null
+    # Check for summary context file and symlink
+    summary_file=$(ls -t .aicheck/cursor/chat_context_*.md 2>/dev/null | head -n 1)
+    symlink_file=.aicheck/cursor/next_chat_context.md
+    if [ -f "$summary_file" ] && [ -f "$symlink_file" ]; then
+        echo -e "${GREEN}✓ Session summary context file and symlink test passed${NC}"
+        ((PASSED_TESTS++))
+    else
+        echo -e "${RED}✗ Session summary context file and symlink test failed${NC}"
+        ((FAILED_TESTS++))
+    fi
+    ((TOTAL_TESTS++))
+}
+
+# Test compliance check
+
+test_compliance_check() {
+    echo -e "\n${YELLOW}Testing Action Plan Compliance Check...${NC}"
+    output=$(bash .aicheck/scripts/common.sh check_action_plan_compliance)
+    if echo "$output" | grep -q "[COMPLIANT]"; then
+        echo -e "${GREEN}✓ Compliance check test passed${NC}"
+        ((PASSED_TESTS++))
+    else
+        echo -e "${RED}✗ Compliance check test failed${NC}"
+        ((FAILED_TESTS++))
+    fi
+    ((TOTAL_TESTS++))
+}
+
+# Test prompt generation
+
+test_prompt_generation() {
+    echo -e "\n${YELLOW}Testing Prompt Generation...${NC}"
+    output=$(bash .aicheck/scripts/common.sh generate_prompt)
+    if echo "$output" | grep -q "Purpose:" && echo "$output" | grep -q "Value:" && echo "$output" | grep -q "Next Steps:"; then
+        echo -e "${GREEN}✓ Prompt generation test passed${NC}"
+        ((PASSED_TESTS++))
+    else
+        echo -e "${RED}✗ Prompt generation test failed${NC}"
+        ((FAILED_TESTS++))
+    fi
+    ((TOTAL_TESTS++))
+}
+
 # Run all test suites
 echo "Starting AICheck test suite..."
 echo "================================"
@@ -207,6 +275,18 @@ test_session_management
 
 # Run error handling tests
 test_error_handling
+
+# Run session start automation test
+test_session_start_automation
+
+# Run session end automation test
+test_session_end_automation
+
+# Run compliance check test
+test_compliance_check
+
+# Run prompt generation test
+test_prompt_generation
 
 # Generate test report
 REPORT_FILE=".aicheck/test_reports/test_report_$(date +%Y%m%d_%H%M%S).txt"
@@ -227,6 +307,10 @@ REPORT_FILE=".aicheck/test_reports/test_report_$(date +%Y%m%d_%H%M%S).txt"
     echo "- Action Management Tests"
     echo "- Session Management Tests"
     echo "- Error Handling Tests"
+    echo "- Session Start Automation Tests"
+    echo "- Session End Automation Tests"
+    echo "- Compliance Check Tests"
+    echo "- Prompt Generation Tests"
     echo ""
     echo "Detailed Results:"
     echo "----------------"

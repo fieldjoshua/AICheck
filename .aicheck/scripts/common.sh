@@ -6,7 +6,31 @@
 generate_prompt() {
     current_action=$(cat .aicheck/current_action 2>/dev/null || echo "None")
     current_session=$(cat .aicheck/current_session 2>/dev/null || echo "None")
-    echo "Prompt: Current Action: $current_action | Current Session: $current_session"
+    plan_file=".aicheck/actions/$current_action/${current_action}-PLAN.md"
+    prompt="Prompt: Current Action: $current_action | Current Session: $current_session"
+
+    if [ -f "$plan_file" ]; then
+        # Extract Purpose
+        purpose=$(awk '/^## Purpose/{getline; print; exit}' "$plan_file")
+        # Extract Value
+        value=$(awk '/^## Value/{getline; print; exit}' "$plan_file")
+        # Extract Steps (all checklist items)
+        steps=$(awk '/^## Steps/{flag=1; next} /^## /{flag=0} flag && /^- \[ \]/ {print}' "$plan_file")
+
+        # Check for missing sections
+        missing=""
+        grep -q '^## Purpose' "$plan_file" || missing="Purpose"
+        grep -q '^## Value' "$plan_file" || missing="$missing Value"
+        grep -q '^## Steps' "$plan_file" || missing="$missing Steps"
+
+        [ -n "$purpose" ] && prompt="$prompt\nPurpose: $purpose"
+        [ -n "$value" ] && prompt="$prompt\nValue: $value"
+        [ -n "$steps" ] && prompt="$prompt\nNext Steps:\n$steps"
+        [ -n "$missing" ] && prompt="$prompt\nWARNING: Missing sections:$missing"
+    else
+        prompt="$prompt\nWARNING: No plan file found for current action."
+    fi
+    echo -e "$prompt"
 }
 
 # Check action status
@@ -115,4 +139,27 @@ log_error() {
     local resolution="$3"
     echo "[ERROR] $code: $message"
     [[ -n "$resolution" ]] && echo "Resolution: $resolution"
+}
+
+# Compliance check for action plans
+check_action_plan_compliance() {
+    actions_dir=".aicheck/actions"
+    compliant=0
+    noncompliant=0
+    for plan_file in $actions_dir/*/*-PLAN.md; do
+        [ -e "$plan_file" ] || continue
+        missing=""
+        grep -q '^## Purpose' "$plan_file" || missing="Purpose"
+        grep -q '^## Value' "$plan_file" || missing="$missing Value"
+        grep -q '^## Steps' "$plan_file" || missing="$missing Steps"
+        grep -q '^## Notes' "$plan_file" || missing="$missing Notes"
+        if [ -z "$missing" ]; then
+            echo "[COMPLIANT] $plan_file"
+            compliant=$((compliant+1))
+        else
+            echo "[NONCOMPLIANT] $plan_file -- Missing sections:$missing"
+            noncompliant=$((noncompliant+1))
+        fi
+    done
+    echo "\nCompliance summary: $compliant compliant, $noncompliant noncompliant."
 } 

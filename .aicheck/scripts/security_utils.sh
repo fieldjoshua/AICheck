@@ -5,13 +5,27 @@
 
 # Security functions
 validate_path() {
-    # TODO: Implement real path validation
-    return 0
+    local path="$1"
+    # Only allow paths inside .aicheck/, no .. or absolute paths
+    if [[ "$path" == .aicheck/* ]] && [[ "$path" != *..* ]] && [[ "$path" != /* ]]; then
+        return 0
+    else
+        return 1
+    fi
 }
 
 check_permissions() {
-    # TODO: Implement real permission checks
-    return 0
+    local file="$1"
+    # Require 600 permissions (owner read/write only)
+    if [ ! -e "$file" ]; then
+        return 1
+    fi
+    perms=$(stat -f %Lp "$file" 2>/dev/null || stat -c %a "$file" 2>/dev/null)
+    if [ "$perms" = "600" ]; then
+        return 0
+    else
+        return 1
+    fi
 }
 
 # Secure logging function

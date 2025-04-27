@@ -1,40 +1,27 @@
-# Action Management Test Plan
+# Action Management Test Action Plan
 
 ## Purpose
 
-Test the functionality of action management within AICheck
+Test the functionality of action management within AICheck.
 
-## Test Cases
+## Value
 
-1. Action Creation
-   - Verify new actions can be created
-   - Check proper directory structure
-   - Validate plan file creation
+[Briefly explain the value or benefit of this action to the project.]
 
-2. Action Status
-   - Test action status tracking
-   - Verify status updates
-   - Check status persistence
+## Steps
 
-3. Action Switching
-   - Test switching between actions
-   - Verify state preservation
-   - Check for conflicts
+- [ ] Action Creation: Verify new actions can be created, check proper directory structure, validate plan file creation
+- [ ] Action Status: Test action status tracking, verify status updates, check status persistence
+- [ ] Action Switching: Test switching between actions, verify state preservation, check for conflicts
+- [ ] Plan Management: Test plan file creation, verify plan updates, check plan validation
+- [ ] Create test scripts for each test case
+- [ ] Implement test runners
+- [ ] Add test documentation
+- [ ] Create test reports
 
-4. Plan Management
-   - Test plan file creation
-   - Verify plan updates
-   - Check plan validation
+## Notes
 
-## Implementation Steps
-
-1. Create test scripts for each test case
-2. Implement test runners
-3. Add test documentation
-4. Create test reports
-
-## Success Criteria
-
+Success Criteria:
 - All test cases pass
 - Test coverage is comprehensive
 - Documentation is complete
