@@ -6,7 +6,8 @@ This file provides a centralized index of all documentation across AICheck actio
 
 | Action | Document | Description | Path |
 |--------|----------|-------------|------|
-| *System* | Documentation Management | Guide to documentation management features including the documentation detection hook | [.aicheck/actions/System/supporting_docs/documentation_management.md](.aicheck/actions/System/supporting_docs/documentation_management.md) || *ExampleAction* | Design Document | System architecture overview | [.aicheck/actions/ExampleAction/supporting_docs/design.md](./../actions/ExampleAction/supporting_docs/design.md) |
+| *System* | Documentation Management | Guide to documentation management features including the documentation detection hook | [.aicheck/actions/System/supporting_docs/documentation_management.md](.aicheck/actions/System/supporting_docs/documentation_management.md) |
+| *ExampleAction* | Design Document | System architecture overview | [.aicheck/actions/ExampleAction/supporting_docs/design.md](./../actions/ExampleAction/supporting_docs/design.md) |
 | *ExampleAction* | API Specification | API endpoints and parameters | [.aicheck/actions/ExampleAction/supporting_docs/api-spec.md](./../actions/ExampleAction/supporting_docs/api-spec.md) |
 
 ## How to Use This Index
