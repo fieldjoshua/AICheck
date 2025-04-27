@@ -36,3 +36,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Basic project structure
 - Core functionality
 - Initial documentation
+
+## [1.0.0] - 2024-04-27
+
+### Added
+
+- Full compliance with project rules and documentation-first workflow
+- Automated project objective prompting at session start
+- Standardized, compliant action plan template (Purpose, Value, Steps, Notes)
+- Automated session summary and chat context generation at session end (clipboard + editor)
+- Action plan compliance check and audit command
+- Unified prompt generation (purpose, value, steps)
+- Expanded and automated test suite covering all workflows, compliance, and security
+- Clipboard and editor automation for chat context handoff
+
+### Changed
+
+- Improved README with step-by-step installation and usage guide
+- Enhanced session and action management scripts for compliance and automation
+- Security utilities now enforce path and permission validation
+
+### Fixed
+
+- All security, compliance, and workflow tests now pass
+- Pre-commit and test scripts fully integrated

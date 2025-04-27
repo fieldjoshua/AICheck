@@ -5,40 +5,49 @@ AICheck is a modular, security-focused shell-based framework for managing, testi
 ## Features
 
 - Secure path and permission validation
-- Action and session management
+- Action and session management with compliance enforcement
+- Automated project objective prompting and documentation
 - Security event logging
 - Config encryption/decryption
 - Input sanitization
-- Comprehensive test suite
+- Comprehensive, automated test suite
 - Git pre-commit hook integration
 - **Unified command interface via `ai` script**
+- Automated session summary and chat context generation
+- Action plan compliance checks
 
-## Installation
+## Installation & Setup
 
-1. Clone the repository:
+1. **Clone the repository:**
 
    ```sh
    git clone https://github.com/fieldjoshua/AICheck.git
    cd AICheck
    ```
 
-2. Make all scripts executable:
+2. **Make all scripts executable:**
 
    ```sh
    chmod +x .aicheck/scripts/*.sh .aicheck/hooks/*
    chmod +x ai
    ```
 
-3. (Optional) Install pre-commit hook:
+3. **(Optional) Install pre-commit hook:**
 
    ```sh
    ln -sf ../../.aicheck/hooks/pre-commit .git/hooks/pre-commit
    ```
 
-4. (Optional) Run the setup script:
+4. **(Optional) Run the setup script:**
 
    ```sh
    ./setup_aicheck.sh
+   ```
+
+5. **(Recommended) Run the full test suite:**
+
+   ```sh
+   .aicheck/scripts/test_all.sh
    ```
 
 ## Usage
@@ -46,13 +55,16 @@ AICheck is a modular, security-focused shell-based framework for managing, testi
 - **Unified interface:** Use the `ai` script for all major operations:
 
   ```sh
-  ./ai start                      # Start a new session
-  ./ai new <ActionName>           # Create a new action
+  ./ai start                      # Start a new session (prompts for project objective if not set)
+  ./ai new <ActionName>           # Create a new action (compliant template)
   ./ai switch <ActionName>        # Switch to an action
   ./ai status                     # Show status of current action
   ./ai update-status <Action> <Status>    # Update action status
   ./ai update-progress <Action> <Progress> # Update action progress
   ./ai commit "Commit message"    # Commit changes
+  ./ai prompt                     # Generate a context prompt (purpose, value, steps)
+  ./ai end                        # End session (auto-generates chat context, copies to clipboard, opens in editor)
+  ./ai audit                      # Run compliance and audit checks
   ```
 
 - **Run the full test suite:**
@@ -71,7 +83,16 @@ AICheck is a modular, security-focused shell-based framework for managing, testi
 ./ai update-status FeatureX "In Progress"
 ./ai update-progress FeatureX "50%"
 ./ai commit "Started FeatureX and updated progress"
+./ai end   # Ends session, generates chat context, ready for next session or chat
 ```
+
+## Compliance & Automation Highlights
+
+- **Session start** prompts for project objective if not set, ensuring clear project scope.
+- **Action plans** use a standardized, compliant template (Purpose, Value, Steps, Notes).
+- **Session end** auto-generates a summary context for chat, copies it to clipboard, and opens it in your editor.
+- **Compliance checks** ensure all plans and documentation meet project rules.
+- **Automated tests** cover all workflows, security, and compliance features.
 
 ## Contributing
 Contributions are welcome! Please see `CONTRIBUTING.md` for guidelines.
