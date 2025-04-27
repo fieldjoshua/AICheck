@@ -1,5 +1,43 @@
 # AICheck
 
+## Quick Start
+
+1. **Clone and enter the repo:**
+
+   ```sh
+   git clone https://github.com/fieldjoshua/AICheck.git
+   cd AICheck
+   ```
+
+2. **Make scripts executable:**
+
+   ```sh
+   chmod +x .aicheck/scripts/*.sh .aicheck/hooks/*
+   chmod +x ai
+   ```
+
+3. **(Optional) Install pre-commit hook:**
+
+   ```sh
+   ln -sf ../../.aicheck/hooks/pre-commit .git/hooks/pre-commit
+   ```
+
+4. **(Recommended) Run all tests:**
+
+   ```sh
+   .aicheck/scripts/test_all.sh
+   ```
+
+5. **Start using AICheck:**
+
+   ```sh
+   ./ai start                # Start a session (define project objective if prompted)
+   ./ai new MyAction         # Create a new action (compliant template)
+   ./ai end                  # End session (auto-generates chat context)
+   ```
+
+---
+
 AICheck is a modular, security-focused shell-based framework for managing, testing, and automating code quality and project workflows. It provides robust utilities for path validation, permission checks, secure logging, configuration encryption, and more.
 
 ## Features
