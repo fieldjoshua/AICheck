@@ -142,24 +142,35 @@ action_update_progress() {
     # If progress is 100%, prompt for additional improvements
     if [[ "$progress" == "100%" ]]; then
         echo ""
-        echo "=== Action Progress: 100% ==="
-        echo "Before closing this action, please consider:"
-        echo "1. Are there any additional improvements that could be made within the scope of this action?"
-        echo "2. Have all planned steps been completed to the highest quality?"
-        echo "3. Is there any documentation that needs to be updated or added?"
+        echo "⚠️ ACTION COMPLETION CHECK ⚠️"
+        echo ""
+        echo "Action '$action_name' has reached 100% progress."
+        echo "Before closing this action, please review:"
+        echo ""
+        echo "1. Additional Improvements"
+        echo "   - Are there any improvements that could be made within scope?"
+        echo "   - Have all planned steps been completed to the highest quality?"
+        echo "   - Is there any documentation that needs to be updated or added?"
+        echo ""
+        echo "2. Quality Assurance"
+        echo "   - Have all tests been run and passed?"
+        echo "   - Is the code/documentation following best practices?"
+        echo "   - Are there any potential issues or edge cases to address?"
         echo ""
         echo "Would you like to make any additional improvements? (y/n)"
         read -r make_improvements
         if [[ "$make_improvements" == "y" ]]; then
+            echo ""
             echo "Please describe the improvements you'd like to make:"
             read -r improvements
             echo ""
-            echo "Improvements noted:"
+            echo "📝 Improvements noted:"
             echo "$improvements"
             echo ""
             echo "The action will remain active. Please update the progress again when improvements are complete."
         else
-            echo "No additional improvements needed. The action can be closed when ready."
+            echo ""
+            echo "✓ No additional improvements needed. The action can be closed when ready."
         fi
     fi
 } 
