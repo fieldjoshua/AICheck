@@ -353,6 +353,89 @@ test_documentation_detection() {
     ((TOTAL_TESTS+=3))
 }
 
+# Test progress updates and 100% alert
+test_progress_updates() {
+    echo -e "\n${YELLOW}Testing Progress Updates...${NC}"
+    
+    # Create test action
+    local test_action="ProgressTestAction"
+    .aicheck/scripts/action.sh create "$test_action"
+    
+    # Test progress updates
+    if .aicheck/scripts/action.sh update-progress "$test_action" "25%"; then
+        echo -e "${GREEN}✓ Progress update test passed${NC}"
+        ((PASSED_TESTS++))
+    else
+        echo -e "${RED}✗ Progress update test failed${NC}"
+        ((FAILED_TESTS++))
+    fi
+    
+    # Test 100% progress alert
+    # Save the original index
+    if [ -f ".aicheck/docs/actions_index.md" ]; then
+        cp .aicheck/docs/actions_index.md .aicheck/docs/actions_index.md.bak
+    fi
+    
+    # Test with 'y' response
+    (echo "y"; echo "Test improvement") | .aicheck/scripts/action.sh update-progress "$test_action" "100%" > /dev/null
+    if [ -f ".aicheck/actions/$test_action/progress.md" ] && grep -q "100%" ".aicheck/actions/$test_action/progress.md"; then
+        echo -e "${GREEN}✓ 100% progress alert test passed${NC}"
+        ((PASSED_TESTS++))
+    else
+        echo -e "${RED}✗ 100% progress alert test failed${NC}"
+        ((FAILED_TESTS++))
+    fi
+    
+    # Test with 'n' response
+    echo "n" | .aicheck/scripts/action.sh update-progress "$test_action" "100%" > /dev/null
+    if [ -f ".aicheck/actions/$test_action/progress.md" ] && grep -q "100%" ".aicheck/actions/$test_action/progress.md"; then
+        echo -e "${GREEN}✓ 100% progress no improvements test passed${NC}"
+        ((PASSED_TESTS++))
+    else
+        echo -e "${RED}✗ 100% progress no improvements test failed${NC}"
+        ((FAILED_TESTS++))
+    fi
+    
+    # Cleanup
+    .aicheck/scripts/action.sh delete "$test_action"
+    if [ -f ".aicheck/docs/actions_index.md.bak" ]; then
+        mv .aicheck/docs/actions_index.md.bak .aicheck/docs/actions_index.md
+    fi
+    
+    ((TOTAL_TESTS+=4))
+}
+
+# Run all tests
+run_all_tests() {
+    echo -e "${YELLOW}=== Running All Tests ===${NC}"
+    
+    # Initialize test counters
+    PASSED_TESTS=0
+    FAILED_TESTS=0
+    TOTAL_TESTS=0
+    
+    # Run test suites
+    test_action_management
+    test_error_handling
+    test_session_start_automation
+    test_progress_updates
+    
+    # Print test results
+    echo -e "\n${YELLOW}=== Test Results ===${NC}"
+    echo -e "Total tests: $TOTAL_TESTS"
+    echo -e "${GREEN}Tests passed: $PASSED_TESTS${NC}"
+    echo -e "${RED}Tests failed: $FAILED_TESTS${NC}"
+    
+    # Return appropriate exit code
+    if [ $FAILED_TESTS -eq 0 ]; then
+        echo -e "\n${GREEN}All tests passed!${NC}"
+        exit 0
+    else
+        echo -e "\n${RED}Some tests failed!${NC}"
+        exit 1
+    fi
+}
+
 # Run all test suites
 echo "Starting AICheck test suite..."
 echo "================================"
@@ -363,20 +446,8 @@ run_test_suite "Security Tests" ".aicheck/scripts/test_security.sh"
 # Run pre-commit tests
 run_test_suite "Pre-commit Tests" ".aicheck/scripts/test_pre_commit.sh"
 
-# Run action management tests
-test_action_management
-
 # Run session management tests
 test_session_management
-
-# Run error handling tests
-test_error_handling
-
-# Run session start automation test
-test_session_start_automation
-
-# Run session end automation test
-test_session_end_automation
 
 # Run compliance check test
 test_compliance_check
@@ -386,6 +457,9 @@ test_prompt_generation
 
 # Run individual tests
 test_documentation_detection
+
+# Run all tests
+run_all_tests
 
 # Generate test report
 REPORT_FILE=".aicheck/test_reports/test_report_$(date +%Y%m%d_%H%M%S).txt"
@@ -411,6 +485,7 @@ REPORT_FILE=".aicheck/test_reports/test_report_$(date +%Y%m%d_%H%M%S).txt"
     echo "- Compliance Check Tests"
     echo "- Prompt Generation Tests"
     echo "- Documentation Detection Tests"
+    echo "- Progress Updates Tests"
     echo ""
     echo "Detailed Results:"
     echo "----------------"

@@ -12,7 +12,7 @@ source .aicheck/scripts/action.sh
 source .aicheck/scripts/security_utils.sh
 
 usage() {
-    echo "Usage: ./ai {start|end|create|switch|status|delete|update-status|update-progress|catchup|update|list|view|summary|version|help|docs|add-doc|create-doc} [action_name] [value]"
+    echo "Usage: ./ai {start|end|create|switch|status|delete|update-status|update-progress|catchup|update|list|view|summary|version|help|docs|add-doc|create-doc|create-code} [action_name] [value]"
     exit 1
 }
 
@@ -311,6 +311,7 @@ The following ALWAYS require human manager approval:
         echo "Update complete. AICheck has been updated to the latest version."
         echo "New features:"
         echo "- catchup: Generate project overview for new editors (./ai catchup)"
+        echo "- 100% progress alert: Improved completion check with sound and visual alerts"
         ;;
     list)
         # List all actions with their statuses
@@ -432,7 +433,7 @@ The following ALWAYS require human manager approval:
         ;;
     version)
         # Display AICheck version information
-        echo "AICheck v1.0.0"
+        echo "AICheck v1.1.0"
         echo "Copyright (c) 2023-2024"
         echo "https://github.com/fieldjoshua/AICheck"
         ;;
@@ -476,8 +477,10 @@ The following ALWAYS require human manager approval:
         echo "  version              - Show AICheck version information"
         echo "  help                 - Show this help message"
         echo "  docs                 - Manage and view documentation index"
+        echo "  docs scan            - Scan and index all documentation files"
         echo "  add-doc              - Add supporting documentation to an action"
         echo "  create-doc           - Create a new documentation file"
+        echo "  create-code          - Create a new code file in the correct location"
         ;;
     docs)
         # Documentation management and viewing
@@ -617,6 +620,10 @@ $new_line" "$docs_index"
                 echo "Searching for '$action_name' in documentation index..."
                 grep -i "$action_name" "$docs_index" || echo "No matches found."
                 ;;
+            "scan")
+                echo "Scanning for documentation files not in the index..."
+                .aicheck/scripts/doc_detection_hook.sh --scan-all
+            ;;
             *)
                 echo "Documentation Index: $docs_index"
                 echo ""
@@ -624,6 +631,7 @@ $new_line" "$docs_index"
                 echo "  ./ai docs list               - View all documentation"
                 echo "  ./ai docs add <ActionName> \"Doc Name\" \"path/to/doc\" \"Description\" - Add a document to the index"
                 echo "  ./ai docs find <search_term> - Search the documentation index"
+                echo "  ./ai docs scan               - Scan for all documentation files and add them to the index"
                 ;;
         esac
         ;;
@@ -880,6 +888,234 @@ EOC
         elif command -v xdg-open &> /dev/null; then
             echo "Opening document..."
             xdg-open "$doc_path"
+        fi
+        ;;
+    create-code)
+        # Create a new code file in the correct location (action directory)
+        action_name="$1"
+        code_file="$2"
+        file_type="$3"
+        
+        if [ -z "$action_name" ] || [ -z "$code_file" ]; then
+            echo "Usage: ./ai create-code <ActionName> <file_path> [file_type]"
+            echo ""
+            echo "Examples:"
+            echo "  ./ai create-code MyAction src/main.py python"
+            echo "  ./ai create-code MyAction code/utils.js javascript"
+            echo ""
+            echo "Supported file types: python, javascript, typescript, java, go, ruby, php, bash, c, cpp"
+            exit 1
+        fi
+        
+        # Check if action exists
+        action_dir=".aicheck/actions/$action_name"
+        if [ ! -d "$action_dir" ]; then
+            echo "Error: Action '$action_name' does not exist."
+            echo "Create it first with: ./ai new $action_name"
+            exit 1
+        fi
+        
+        # Detect file type if not specified
+        if [ -z "$file_type" ]; then
+            # Get extension
+            ext="${code_file##*.}"
+            case "$ext" in
+                py) file_type="python" ;;
+                js) file_type="javascript" ;;
+                ts) file_type="typescript" ;;
+                java) file_type="java" ;;
+                go) file_type="go" ;;
+                rb) file_type="ruby" ;;
+                php) file_type="php" ;;
+                sh) file_type="bash" ;;
+                c|h) file_type="c" ;;
+                cpp|hpp|cc) file_type="cpp" ;;
+                *) file_type="generic" ;;
+            esac
+        fi
+        
+        # Check if the file path includes a directory structure
+        if [[ "$code_file" == */* ]]; then
+            # Path includes directory - get the directory part
+            dir_part=$(dirname "$code_file")
+            file_part=$(basename "$code_file")
+            
+            # Create a proper path in the action directory
+            if [[ "$dir_part" == "src" || "$dir_part" == "code" ]]; then
+                # User specified src/ or code/ - use that
+                code_dir="$action_dir/$dir_part"
+            else
+                # User specified a subdirectory - put it under /src
+                code_dir="$action_dir/src/$dir_part"
+            fi
+            
+            full_path="$code_dir/$file_part"
+        else
+            # No directory structure - default to src/
+            code_dir="$action_dir/src"
+            full_path="$code_dir/$code_file"
+        fi
+        
+        # Ensure the directory exists
+        mkdir -p "$code_dir"
+        
+        # Check if the file already exists
+        if [ -f "$full_path" ]; then
+            echo "Warning: File already exists. Overwrite? (y/n)"
+            read -r overwrite
+            if [ "$overwrite" != "y" ]; then
+                echo "Operation cancelled."
+                exit 0
+            fi
+        fi
+        
+        # Create the file with appropriate template based on type
+        echo "Creating code file: $full_path"
+        
+        case "$file_type" in
+            python)
+                cat > "$full_path" << EOC
+#!/usr/bin/env python3
+"""
+${action_name} - ${code_file}
+
+Description: 
+    [Add description here]
+"""
+
+def main():
+    """Main function."""
+    print("Hello from ${action_name}!")
+
+if __name__ == "__main__":
+    main()
+EOC
+                ;;
+            javascript)
+                cat > "$full_path" << EOC
+/**
+ * ${action_name} - ${code_file}
+ * 
+ * Description:
+ *   [Add description here]
+ */
+
+// Main code
+function main() {
+  console.log("Hello from ${action_name}!");
+}
+
+main();
+EOC
+                ;;
+            typescript)
+                cat > "$full_path" << EOC
+/**
+ * ${action_name} - ${code_file}
+ * 
+ * Description:
+ *   [Add description here]
+ */
+
+// Main function
+function main(): void {
+  console.log("Hello from ${action_name}!");
+}
+
+main();
+EOC
+                ;;
+            java)
+                # Convert action name to proper Java class name
+                class_name=$(basename "$code_file" .java)
+                cat > "$full_path" << EOC
+/**
+ * ${action_name} - ${class_name}
+ * 
+ * Description:
+ *   [Add description here]
+ */
+
+public class ${class_name} {
+    public static void main(String[] args) {
+        System.out.println("Hello from ${action_name}!");
+    }
+}
+EOC
+                ;;
+            go)
+                cat > "$full_path" << EOC
+/*
+ * ${action_name} - ${code_file}
+ * 
+ * Description:
+ *   [Add description here]
+ */
+
+package main
+
+import "fmt"
+
+func main() {
+    fmt.Println("Hello from ${action_name}!")
+}
+EOC
+                ;;
+            bash)
+                cat > "$full_path" << EOC
+#!/bin/bash
+# ${action_name} - ${code_file}
+#
+# Description:
+#   [Add description here]
+
+# Main code
+echo "Hello from ${action_name}!"
+EOC
+                # Make bash scripts executable
+                chmod +x "$full_path"
+                ;;
+            c|cpp)
+                cat > "$full_path" << EOC
+/**
+ * ${action_name} - ${code_file}
+ * 
+ * Description:
+ *   [Add description here]
+ */
+
+#include <stdio.h>
+
+int main() {
+    printf("Hello from ${action_name}!\n");
+    return 0;
+}
+EOC
+                ;;
+            *)
+                # Generic template for unsupported file types
+                cat > "$full_path" << EOC
+/*
+ * ${action_name} - ${code_file}
+ * 
+ * Description:
+ *   [Add description here]
+ */
+
+// Code goes here
+EOC
+                ;;
+        esac
+        
+        echo "Code file created at: $full_path"
+        
+        # Try to open the file with the default editor if available
+        if command -v open &> /dev/null; then
+            echo "Opening file..."
+            open "$full_path"
+        elif command -v xdg-open &> /dev/null; then
+            echo "Opening file..."
+            xdg-open "$full_path"
         fi
         ;;
     *)

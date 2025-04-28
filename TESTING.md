@@ -88,6 +88,45 @@ git commit -m "test: testing pre-commit hook"
 # Verify:
 # - Progress updates in index
 # - Progress validation (0-100%)
+# - 100% progress alert:
+#   * Alert sound plays (if available)
+#   * Box-style alert appears
+#   * Improvement checklist shown
+#   * User can choose to make improvements
+#   * Action plan update prompt shown
+#   * Next steps clearly displayed
+#   * Color formatting works correctly
+```
+
+### 2.5 Progress Alert Testing
+
+```bash
+# Test 100% progress alert
+# Create test action
+./ai new ProgressTestAction
+
+# Test with improvements
+./ai update-progress ProgressTestAction 100%
+# Enter 'y' when prompted
+# Enter test improvement description
+# Verify:
+# - Alert appears with correct formatting
+# - Sound plays (if available)
+# - Improvement is noted
+# - Next steps are shown
+# - Action remains active
+
+# Test without improvements
+./ai update-progress ProgressTestAction 100%
+# Enter 'n' when prompted
+# Verify:
+# - Alert appears with correct formatting
+# - Sound plays (if available)
+# - Action can be closed
+# - No improvements are noted
+
+# Cleanup
+./ai delete ProgressTestAction
 ```
 
 ## 3. Administrative Tests
