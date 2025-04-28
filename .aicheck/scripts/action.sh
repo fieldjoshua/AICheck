@@ -138,4 +138,28 @@ action_update_progress() {
     fi
     echo "$progress" > "$progress_file"
     echo "[action_update_progress] Updated progress for '$action_name' to '$progress'."
+
+    # If progress is 100%, prompt for additional improvements
+    if [[ "$progress" == "100%" ]]; then
+        echo ""
+        echo "=== Action Progress: 100% ==="
+        echo "Before closing this action, please consider:"
+        echo "1. Are there any additional improvements that could be made within the scope of this action?"
+        echo "2. Have all planned steps been completed to the highest quality?"
+        echo "3. Is there any documentation that needs to be updated or added?"
+        echo ""
+        echo "Would you like to make any additional improvements? (y/n)"
+        read -r make_improvements
+        if [[ "$make_improvements" == "y" ]]; then
+            echo "Please describe the improvements you'd like to make:"
+            read -r improvements
+            echo ""
+            echo "Improvements noted:"
+            echo "$improvements"
+            echo ""
+            echo "The action will remain active. Please update the progress again when improvements are complete."
+        else
+            echo "No additional improvements needed. The action can be closed when ready."
+        fi
+    fi
 } 
