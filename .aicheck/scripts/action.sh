@@ -167,7 +167,11 @@ action_update_progress() {
             echo "📝 Improvements noted:"
             echo "$improvements"
             echo ""
-            echo "The action will remain active. Please update the progress again when improvements are complete."
+            echo "The action will remain active."
+            echo "Next steps:"
+            echo "1. Update the Action PLAN with these improvements"
+            echo "2. Proceed with work on these specific improvements"
+            echo "3. Update progress again when improvements are complete"
         else
             echo ""
             echo "✓ No additional improvements needed. The action can be closed when ready."
