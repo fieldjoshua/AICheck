@@ -17,7 +17,7 @@
 
    ```sh
    chmod +x .aicheck/scripts/*.sh .aicheck/hooks/*
-   chmod +x ai
+   chmod +x ai ai-core
    ```
 
 3. **(Optional) Install pre-commit hook:**
@@ -40,13 +40,19 @@
    ./ai end                  # End session (auto-generates chat context)
    ```
 
+   Or use the streamlined interface:
+
+   ```sh
+   ./ai-core start           # Streamlined interface with core commands
+   ```
+
 ---
 
 AICheck is a modular, security-focused shell-based framework for managing, testing, and automating code quality and project workflows. It provides robust utilities for path validation, permission checks, secure logging, configuration encryption, and more.
 
 ## Features
 
-- Secure path and permission validation
+- Secure path and permission validation with runtime path detection
 - Action and session management with compliance enforcement
 - Automated project objective prompting and documentation
 - Security event logging
@@ -54,10 +60,11 @@ AICheck is a modular, security-focused shell-based framework for managing, testi
 - Input sanitization
 - Comprehensive, automated test suite
 - Git pre-commit hook integration
-- **Unified command interface via `ai` script**
+- **Two command interfaces: full (`ai`) and streamlined (`ai-core`)**
 - Automated session summary and chat context generation
 - Action plan compliance checks
 - Documentation detection hook for automatically tracking action-specific documentation
+- First-time setup guidance for new projects
 
 ## Installation & Setup
 
@@ -72,7 +79,7 @@ AICheck is a modular, security-focused shell-based framework for managing, testi
 
    ```sh
    chmod +x .aicheck/scripts/*.sh .aicheck/hooks/*
-   chmod +x ai
+   chmod +x ai ai-core
    ```
 
 3. **(Optional) Install pre-commit hook:**

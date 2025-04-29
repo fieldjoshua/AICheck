@@ -39,18 +39,27 @@ pip install -r requirements.txt
 
 #### 3.1 Set Up Directory Structure
 
-The installer will create the following structure in your project:
+The AICheck system uses the following directory structure:
 
 ```
-.aicheck/
-├── actions/     # Action management
-├── docs/        # Documentation
-├── hooks/       # Git hooks
-├── insights/    # AI insights
-├── scripts/     # Utility scripts
-├── sessions/    # Session data
-└── templates/   # Templates
+/
+├── ai                # Primary AICheck interface script (full command set)
+├── ai-core           # Streamlined AICheck interface script 
+└── .aicheck/
+    ├── actions/      # Action management
+    ├── cursor/       # Cursor chat contexts
+    ├── docs/         # Documentation
+    ├── hooks/        # Git hooks
+    ├── insights/     # AI insights
+    ├── scripts/      # Utility scripts
+    │   ├── ai        # Copy of full command set interface
+    │   ├── ai-core   # Copy of streamlined interface
+    │   └── ...       # Component scripts
+    ├── sessions/     # Session data
+    └── templates/    # Templates
 ```
+
+Both the `ai` and `ai-core` scripts are designed to work regardless of their location, using runtime path detection to find the .aicheck directory and component scripts.
 
 #### 3.2 Install Git Hooks
 
