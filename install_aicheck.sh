@@ -78,7 +78,35 @@ print_summary() {
     echo "\nAICheck is now up to date and ready to use!"
 }
 
+# Check for uncommitted changes
+check_uncommitted_changes() {
+    if [ -n "$(git status --porcelain)" ]; then
+        echo "Warning: You have uncommitted changes. Please commit or stash them before proceeding."
+        exit 1
+    fi
+}
+
+# Handle untracked files
+handle_untracked_files() {
+    UNTRACKED_FILES=$(git ls-files --others --exclude-standard)
+    if [ -n "$UNTRACKED_FILES" ]; then
+        echo "Warning: You have untracked files. Consider adding them to version control or ignoring them."
+        echo "$UNTRACKED_FILES"
+    fi
+}
+
+# Verify directory structure
+verify_directory_structure() {
+    if [ ! -d ".aicheck/hooks/" ]; then
+        echo "Creating missing .aicheck/hooks/ directory."
+        mkdir -p .aicheck/hooks/
+    fi
+}
+
 # Main
+check_uncommitted_changes
+handle_untracked_files
+verify_directory_structure
 OLD_SCRIPTS=$(find_old_scripts)
 if [ -n "$OLD_SCRIPTS" ]; then
     echo "Backing up and deleting old scripts..."
