@@ -53,6 +53,7 @@ EOL
     echo "Not Started" > "$status_file"
     echo "0%" > "$progress_file"
     echo "[action_create] Created action '$action_name' at $action_dir."
+    echo "[action_create] Created supporting_docs directory at $docs_dir for process documentation."
 }
 
 # Switch to an action
@@ -174,6 +175,11 @@ action_update_progress() {
         echo -e "   ${YELLOW}• Is the code/documentation following best practices?${NC}"
         echo -e "   ${YELLOW}• Are there any potential issues or edge cases to address?${NC}"
         echo ""
+        echo -e "${BOLD}3. Documentation Migration${NC}"
+        echo -e "   ${YELLOW}• Have you identified documentation with enduring value?${NC}"
+        echo -e "   ${YELLOW}• Have you migrated relevant documentation to /documentation/?${NC}"
+        echo -e "   ${YELLOW}• Have you updated all references to migrated documentation?${NC}"
+        echo ""
         echo -e "${BOLD}${YELLOW}Would you like to make any additional improvements? (y/n)${NC}"
         read -r make_improvements
         if [[ "$make_improvements" == "y" ]]; then
@@ -191,7 +197,18 @@ action_update_progress() {
             echo -e "${GREEN}3. Update progress again when improvements are complete${NC}"
         else
             echo ""
-            echo -e "${BOLD}${GREEN}✓ No additional improvements needed. The action can be closed when ready.${NC}"
+            echo -e "${BOLD}${YELLOW}Do you need to migrate any process documentation to product documentation? (y/n)${NC}"
+            read -r migrate_docs
+            if [[ "$migrate_docs" == "y" ]]; then
+                echo ""
+                echo -e "${BOLD}${GREEN}To migrate documentation, use:${NC}"
+                echo -e "${GREEN}./ai migrate-docs $action_name [SOURCE_DOC] [TARGET_CATEGORY]${NC}"
+                echo ""
+                echo -e "${BOLD}See documentation/technical/processes/documentation_migration.md for the complete checklist.${NC}"
+            else
+                echo ""
+                echo -e "${BOLD}${GREEN}✓ No additional improvements needed. The action can be closed when ready.${NC}"
+            fi
         fi
     fi
 } 

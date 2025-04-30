@@ -47,8 +47,14 @@ else
     echo "Error: Could not find security_utils.sh in $AICHECK_DIR/scripts/"
 fi
 
+if [ -f "$AICHECK_DIR/scripts/document_migration.sh" ]; then
+    source "$AICHECK_DIR/scripts/document_migration.sh"
+else
+    echo "Error: Could not find document_migration.sh in $AICHECK_DIR/scripts/"
+fi
+
 usage() {
-    echo "Usage: ./ai {start|end|create|switch|status|delete|update-status|update-progress|catchup|update|list|view|summary|version|help|docs|add-doc|create-doc|create-code} [action_name] [value]"
+    echo "Usage: ./ai {start|end|create|switch|status|delete|update-status|update-progress|catchup|update|list|view|summary|version|help|docs|add-doc|create-doc|create-code|migrate-docs} [action_name] [value]"
     exit 1
 }
 
@@ -94,6 +100,43 @@ case "$command" in
         ;;
     prompt)
         generate_prompt
+        ;;
+    migrate-docs)
+        action_name="$1"
+        source_doc="$2"
+        target_category="$3"
+        
+        # If no parameters provided, show usage
+        if [[ -z "$action_name" ]]; then
+            echo "Usage: ./ai migrate-docs [ACTION_NAME] [SOURCE_DOC] [TARGET_CATEGORY]"
+            echo "Example: ./ai migrate-docs AuthImplementation auth-architecture.md architecture"
+            echo ""
+            echo "This command will migrate process documentation from an action to the centralized product documentation."
+            exit 1
+        fi
+        
+        # If only action name provided, list documents
+        if [[ -z "$source_doc" ]]; then
+            list_process_documents "$action_name"
+            echo ""
+            echo "To migrate a document, specify the source document name:"
+            echo "./ai migrate-docs $action_name [SOURCE_DOC] [TARGET_CATEGORY]"
+            exit 0
+        fi
+        
+        # If action name and source doc provided but no target category, list categories
+        if [[ -z "$target_category" ]]; then
+            echo "Please specify a target category for document '$source_doc'."
+            echo ""
+            list_target_categories
+            echo ""
+            echo "To migrate this document, run:"
+            echo "./ai migrate-docs $action_name $source_doc [TARGET_CATEGORY]"
+            exit 0
+        fi
+        
+        # All parameters provided, proceed with migration
+        migrate_document "$action_name" "$source_doc" "$target_category"
         ;;
     commit)
         if [ -z "$1" ]; then
@@ -342,12 +385,14 @@ The following ALWAYS require human manager approval:
         
         # Make scripts executable
         echo "Making scripts executable..."
-        chmod +x "$AICHECK_DIR/scripts/*.sh" "$AICHECK_DIR/hooks/*" ai
+        chmod +x "$AICHECK_DIR/scripts/"*.sh "$AICHECK_DIR/hooks/"* ai ai-core
         
         echo "Update complete. AICheck has been updated to the latest version."
         echo "New features:"
-        echo "- catchup: Generate project overview for new editors (./ai catchup)"
-        echo "- 100% progress alert: Improved completion check with sound and visual alerts"
+        echo "- Streamlined command interface: New ai-core script with essential commands"
+        echo "- Runtime path detection: Scripts work regardless of location in repository"
+        echo "- Initial setup guidance: First-time setup with product vision templates"
+        echo "- Improved documentation: Updated documentation structure and guidelines"
         ;;
     list)
         # List all actions with their statuses
@@ -517,6 +562,7 @@ The following ALWAYS require human manager approval:
         echo "  add-doc              - Add supporting documentation to an action"
         echo "  create-doc           - Create a new documentation file"
         echo "  create-code          - Create a new code file in the correct location"
+        echo "  migrate-docs         - Migrate process documentation from an action to the centralized product documentation"
         ;;
     docs)
         # Documentation management and viewing
