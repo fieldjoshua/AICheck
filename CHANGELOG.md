@@ -62,3 +62,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - All security, compliance, and workflow tests now pass
 - Pre-commit and test scripts fully integrated
+
+## [1.2.0] - 2025-XX-XX
+
+### Added
+
+- New documentation types: Process Documentation and Product Documentation.
+- `document_migration.sh` script for migrating documentation.
+- `migrate-docs` command in the `ai` script for document migration.
+
+### Changed
+
+- Updated `action.sh` to ensure each action has a `supporting_docs` directory.
+- Improved documentation structure under `documentation/`.
+
+### Fixed
+
+- Migration process tested and verified with `DocMigrationTest`.

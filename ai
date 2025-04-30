@@ -514,7 +514,7 @@ The following ALWAYS require human manager approval:
         ;;
     version)
         # Display AICheck version information
-        echo "AICheck v1.1.0"
+        echo "AICheck v1.2.0"
         echo "Copyright (c) 2023-2024"
         echo "https://github.com/fieldjoshua/AICheck"
         ;;
